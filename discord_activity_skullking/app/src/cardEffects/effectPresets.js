@@ -1,0 +1,158 @@
+const BASE_PRESET = {
+  themeClass: "default",
+  flashColor: "rgba(255, 236, 173, 0.82)",
+  auraColors: ["#ffe9a8", "#f1b347", "#ffffff"],
+  dimBackground: false,
+  shakeStrength: "none",
+  particleStyle: "spark",
+  particleCount: 10,
+  particleSpread: 140,
+  travelScale: 1.18,
+  arrivalScale: 1.04,
+  rotation: 0,
+  moveDuration: 0.46,
+  resolveDelay: 0.54,
+  totalDuration: 1.38,
+  moveEase: [0.18, 0.88, 0.22, 1],
+  impactRing: true,
+  resultGlow: "gold",
+  emblem: "none",
+};
+
+export const CARD_EFFECT_PRESETS = {
+  default: BASE_PRESET,
+  suit: {
+    ...BASE_PRESET,
+    themeClass: "suit",
+    flashColor: "rgba(255, 243, 194, 0.7)",
+    auraColors: ["#ffe39d", "#d4a73c", "#fff5d5"],
+    particleCount: 8,
+    travelScale: 1.14,
+    totalDuration: 1.2,
+  },
+  pirate: {
+    ...BASE_PRESET,
+    themeClass: "pirate",
+    flashColor: "rgba(255, 114, 82, 0.84)",
+    auraColors: ["#ffb567", "#ff5f47", "#ffe2c6"],
+    shakeStrength: "medium",
+    particleStyle: "slash",
+    particleCount: 12,
+    particleSpread: 160,
+    travelScale: 1.24,
+    arrivalScale: 1.06,
+    rotation: -5,
+    moveDuration: 0.4,
+    resolveDelay: 0.48,
+    totalDuration: 1.26,
+    resultGlow: "ember",
+    emblem: "slash",
+  },
+  mermaid: {
+    ...BASE_PRESET,
+    themeClass: "mermaid",
+    flashColor: "rgba(109, 211, 255, 0.72)",
+    auraColors: ["#b0f2ff", "#54b8ff", "#dffcff"],
+    particleStyle: "water",
+    particleCount: 14,
+    particleSpread: 128,
+    travelScale: 1.16,
+    arrivalScale: 1.03,
+    moveDuration: 0.5,
+    resolveDelay: 0.56,
+    totalDuration: 1.46,
+    resultGlow: "sea",
+    emblem: "wave",
+  },
+  escape: {
+    ...BASE_PRESET,
+    themeClass: "escape",
+    flashColor: "rgba(210, 224, 255, 0.52)",
+    auraColors: ["#f5f7ff", "#afc8ff", "#e7edff"],
+    particleStyle: "smoke",
+    particleCount: 12,
+    particleSpread: 110,
+    travelScale: 1.06,
+    arrivalScale: 0.98,
+    rotation: 6,
+    moveDuration: 0.3,
+    resolveDelay: 0.34,
+    totalDuration: 0.96,
+    resultGlow: "mist",
+  },
+  skull_king: {
+    ...BASE_PRESET,
+    themeClass: "skull-king",
+    flashColor: "rgba(255, 208, 92, 0.92)",
+    auraColors: ["#ffd76a", "#9f61ff", "#fff1bf"],
+    dimBackground: true,
+    shakeStrength: "heavy",
+    particleStyle: "royal",
+    particleCount: 18,
+    particleSpread: 184,
+    travelScale: 1.3,
+    arrivalScale: 1.08,
+    rotation: -2,
+    moveDuration: 0.54,
+    resolveDelay: 0.68,
+    totalDuration: 1.72,
+    moveEase: [0.16, 0.96, 0.22, 1],
+    resultGlow: "legendary",
+    emblem: "crown",
+  },
+  special: {
+    ...BASE_PRESET,
+    themeClass: "special",
+    flashColor: "rgba(255, 231, 130, 0.9)",
+    auraColors: ["#fff0a8", "#ff8b5e", "#ffffff"],
+    dimBackground: true,
+    shakeStrength: "heavy",
+    particleStyle: "impact",
+    particleCount: 16,
+    particleSpread: 190,
+    travelScale: 1.28,
+    arrivalScale: 1.08,
+    moveDuration: 0.48,
+    resolveDelay: 0.58,
+    totalDuration: 1.54,
+    resultGlow: "shock",
+  },
+};
+
+export function inferEffectType(card = {}) {
+  const rawType = String(card.effectType || card.type || card.kind || "").trim().toLowerCase();
+  const safeType = rawType.replace(/\s+/g, "_");
+
+  if (!safeType) {
+    return "default";
+  }
+  if (safeType.includes("skull")) {
+    return "skull_king";
+  }
+  if (safeType.includes("pirate")) {
+    return "pirate";
+  }
+  if (safeType.includes("mermaid")) {
+    return "mermaid";
+  }
+  if (safeType.includes("escape") || safeType.includes("run")) {
+    return "escape";
+  }
+  if (safeType.includes("kraken") || safeType.includes("whale") || safeType.includes("tigress") || safeType.includes("special")) {
+    return "special";
+  }
+  if (safeType.includes("suit") || safeType.includes("number")) {
+    return "suit";
+  }
+  return CARD_EFFECT_PRESETS[safeType] ? safeType : "default";
+}
+
+export function resolveCardEffectPreset(effectType, card = {}) {
+  const resolvedType = effectType || inferEffectType(card);
+  const preset = CARD_EFFECT_PRESETS[resolvedType] || CARD_EFFECT_PRESETS.default;
+  return {
+    ...preset,
+    effectType: resolvedType,
+  };
+}
+

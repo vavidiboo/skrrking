@@ -1,0 +1,545 @@
+<div id="splash" class="splash" data-splash-mode="boot" data-ready="false" tabindex="0">
+      <div class="splash-ambient" aria-hidden="true">
+        <span class="splash-orb splash-orb-left"></span>
+        <span class="splash-orb splash-orb-right"></span>
+        <span class="splash-wave splash-wave-back"></span>
+        <span class="splash-wave splash-wave-front"></span>
+      </div>
+      <div class="splash-card">
+        <div class="splash-kicker">Legendary Pirate Card Battle</div>
+        <h2>Skull King</h2>
+        <p class="splash-tagline">폭풍우 치는 바다에서 예측과 배짱으로 왕관을 차지하세요.</p>
+        <p id="splashStatus">항해 준비 중...</p>
+        <div class="splash-progress" role="progressbar" aria-label="로딩 진행">
+          <span id="splashProgressFill"></span>
+        </div>
+        <div class="splash-progress-meta">
+          <span id="splashPercent">0%</span>
+          <span id="splashDetail">클라이언트 준비 중</span>
+        </div>
+        <button id="splashCta" class="splash-cta" type="button">
+          <span class="splash-cta-pulse" aria-hidden="true"></span>
+          <span id="splashCtaLabel">로딩 중...</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <main class="layout">
+      <section id="homePanel" class="panel lobby-home">
+        <input id="nameInput" type="hidden" />
+        <input id="sessionInput" type="hidden" />
+        <div class="screen">
+          <div class="content">
+            <header class="topbar">
+              <div class="top-left">
+                <div class="avatar"></div>
+                <div class="nameblock">
+                  <div class="small" id="topbarIdentityLabel">Connecting</div>
+                  <div class="name" id="topbarDisplayName">Discord User</div>
+                  <div class="badge">Beta Tester</div>
+                </div>
+              </div>
+              <div class="top-right">
+                <div id="homePingChip" class="chip chip-quiet ping-floating">-- ms</div>
+                <div class="iconbtn">✉️</div>
+                <div class="iconbtn">⚙️</div>
+              </div>
+            </header>
+
+            <main class="main">
+              <aside class="left-actions">
+                <div class="side-card">
+                  <div>
+                    <div class="emoji">🤝</div>
+                    <div class="title">친구 초대</div>
+                    <div class="sub">친구와 같은 테이블에 앉아<br> 바로 매치를 시작하세요.</div>
+                  </div>
+                  <button class="mini-btn" id="refreshRoomsBtn" type="button">Invite Crew</button>
+                </div>
+              </aside>
+
+              <section class="hero-wrap">
+                <div class="hero-title">
+                  <div class="eyebrow">Skull King · Season 1 · Skrrking</div>
+                  <h1>전설의 바다에서<br />카드 전투를 시작하세요</h1>
+                  <p>예측, 블러핑, 그리고 한 방의 역전</p>
+                </div>
+
+                <div class="portal">
+                  <div class="portal-content">
+                    <div class="cta-row">
+                      <button class="btn btn-secondary" id="createRoomBtn" type="button">Create Room</button>
+                      <button class="btn btn-primary" id="playNowBtn" type="button">Play Now</button>
+                    </div>
+                  </div>
+                </div>
+
+                <footer class="bottom-tray">
+                  <div class="tray-item">
+                    <div class="tray-icon">🛍️</div>
+                    <div>
+                      <div class="t1">Shop</div>
+                      <div class="t2">보드, 카드백, 아바타 꾸미기</div>
+                    </div>
+                  </div>
+
+                  <div class="tray-item">
+                    <div class="tray-icon">📜</div>
+                    <div>
+                      <div class="t1">Quests</div>
+                      <div class="t2">일일 미션과 시즌 목표 확인</div>
+                    </div>
+                  </div>
+
+                  <div class="tray-item">
+                    <div class="tray-icon">👑</div>
+                    <div>
+                      <div class="t1">Season Pass</div>
+                      <div class="t2">진척도 보상과 한정 코스메틱</div>
+                    </div>
+                  </div>
+                </footer>
+              </section>
+
+              <aside class="right-column">
+                <div class="notice-card">
+                  <h4>오늘의 이벤트</h4>
+                  <div class="event">
+                    <div class="left">
+                      <div class="dot">🎁</div>
+                      <div>
+                        <div class="t1">Treasure Rush</div>
+                        <div class="t2">랭크 보상 2배 · 5시간 남음</div>
+                      </div>
+                    </div>
+                    <div class="badge">Live</div>
+                  </div>
+                  <div class="event">
+                    <div class="left">
+                      <div class="dot">🌊</div>
+                      <div>
+                        <div class="t1">Moon Tide Table</div>
+                        <div class="t2">특별 보드 스킨 공개</div>
+                      </div>
+                    </div>
+                    <div class="badge">New</div>
+                  </div>
+                </div>
+
+              </aside>
+            </main>
+
+          </div>
+        </div>
+      </section>
+
+      <section id="lobbyPanel" class="panel hidden room-setup">
+        <div class="screen">
+          <div class="topbar">
+            <div class="left">
+              <div class="avatar"></div>
+              <div>
+                <div id="lobbyTopbarIdentityLabel" class="small">Connecting</div>
+                <div id="lobbyTopbarDisplayName" class="name">Discord User</div>
+              </div>
+            </div>
+            <div class="right">
+              <div id="lobbyRoomCode" class="chip">Room Code · -</div>
+              <div id="lobbyPlayersChip" class="chip">0/6 Players</div>
+              <div class="iconbtn">🔊</div>
+              <div class="iconbtn">⚙️</div>
+            </div>
+          </div>
+          <div id="lobbyPingChip" class="chip chip-quiet ping-floating">-- ms</div>
+
+          <div class="room-main">
+            <div class="table-wrap">
+              <div class="table"></div>
+              <div id="playerList"></div>
+            </div>
+
+            <aside class="setup-panel panel">
+              <h3>Room Setup</h3>
+              <div class="col">
+                <div class="section-title">Match Settings</div>
+                <div class="row setting-row">
+                  <div class="setting-copy">
+                    <span class="setting-label">Turn Timer</span>
+                    <span class="setting-help">각 턴의 제한 시간을 조절합니다.</span>
+                  </div>
+                  <div id="lobbyTurnTimerControl" class="stepper-control">
+                    <button class="stepper-btn" id="lobbyTurnTimerDown" type="button">−</button>
+                    <span id="lobbyTurnTimerVal">20s</span>
+                    <button class="stepper-btn" id="lobbyTurnTimerUp" type="button">+</button>
+                  </div>
+                </div>
+                <div class="row setting-row">
+                  <div class="setting-copy">
+                    <span class="setting-label">보너스 점수</span>
+                    <span class="setting-help">보너스 점수를 사용합니다.</span>
+                  </div>
+                  <button id="lobbyBonusToggle" class="toggle-btn" type="button" data-on="false">Off</button>
+                </div>
+                <div class="row setting-row">
+                  <div class="setting-copy">
+                    <span class="setting-label">고급 룰</span>
+                    <span class="setting-help">고급룰을 사용합니다.</span>
+                  </div>
+                  <button id="lobbyAdvancedToggle" class="toggle-btn" type="button" data-on="false">Off</button>
+                </div>
+                <div class="row setting-row">
+                  <div class="setting-copy">
+                    <span class="setting-label">관전 허용</span>
+                    <span class="setting-help">관전 가능 여부를 설정합니다.</span>
+                  </div>
+                  <button id="lobbySpectatorsToggle" class="toggle-btn" type="button" data-on="false">Off</button>
+                </div>
+              </div>
+              <div class="cta-row">
+                <button id="lobbyBackBtn" class="btn secondary" type="button">Back</button>
+                <button id="lobbyInviteBtn" class="btn secondary" type="button">Invite</button>
+                <button id="startBtn" class="btn primary" type="button">Start</button>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="gamePanel" class="panel hidden game-stage">
+        <div class="row spread table-top">
+          <h2 id="roundTitle">Round 1</h2>
+          <div class="game-top-actions" aria-label="Game actions">
+            <button id="gameForfeitBtn" class="btn secondary hidden" type="button">기권</button>
+            <button id="nextRoundBtn" class="hidden" type="button">다음 라운드</button>
+            <div id="gamePingBadge" class="hud-badge ping-badge ping-floating">-- ms</div>
+          </div>
+          <div id="turnProgress" class="turn-progress">
+            <div id="turnProgressFill" class="turn-progress-fill"></div>
+            <div id="turnProgressMeta" class="turn-progress-meta">20s</div>
+          </div>
+        </div>
+
+        <div class="game-mini-topbar">
+          <div id="gameMiniAvatar" class="mini-avatar"></div>
+            <div class="mini-content">
+              <div class="mini-meta">
+                <div id="gameMiniIdentityLabel" class="mini-small">Connecting</div>
+                <div id="gameMiniDisplayName" class="mini-name">Unknown</div>
+              </div>
+              <div class="mini-stats" aria-label="Current player summary">
+                <div class="mini-badge">
+                  <span class="mini-badge-label">Bid</span>
+                  <strong id="gameMiniBidValue" class="mini-badge-value">-</strong>
+                </div>
+                <div class="mini-badge">
+                  <span class="mini-badge-label">Won</span>
+                  <strong id="gameMiniWonValue" class="mini-badge-value">0</strong>
+                </div>
+                <div class="mini-badge mini-badge-score">
+                  <span class="mini-badge-label">Score</span>
+                  <strong id="gameMiniScoreValue" class="mini-badge-value">0</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <div class="table-wrap">
+          <div class="table-ring"></div>
+          <div id="tableCinematicFx" class="table-cinematic-fx" aria-hidden="true"></div>
+          <div id="playerRing" class="player-ring"></div>
+          <div id="trickCenter" class="trick-center"></div>
+          <div id="reconnectOverlay" class="reconnect-overlay hidden" aria-live="polite">
+            <div class="reconnect-card">
+              <div id="reconnectTitle" class="reconnect-title">Reconnecting</div>
+              <div id="reconnectBody" class="reconnect-body">서버 스냅샷을 다시 받고 있어요.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="interactionHud" class="interaction-hud" aria-live="polite">
+          <div id="interactionHudKicker" class="interaction-hud-kicker">Play Window</div>
+          <div id="interactionHudTitle" class="interaction-hud-title">카드를 끌어 중앙으로 올리면 제출됩니다.</div>
+          <div id="interactionHudBody" class="interaction-hud-body">내 턴에는 합법 카드만 살아나고, 중앙에서 현재 우세를 바로 확인할 수 있습니다.</div>
+        </div>
+
+        <div id="handArea" class="hand table-hand"></div>
+
+        <section class="compact-tools compact-tools-minimal"></section>
+
+        <aside id="scoreDialog" class="drawer panel hidden">
+          <div id="scoreDrawerHeader" class="drawer-header">
+            <h3>Scoreboard</h3>
+            <button id="closeScoreDrawerBtn" type="button" class="close"><span>✕</span></button>
+          </div>
+          <div class="tabs">
+            <button id="scoreTabScores" class="tab active" type="button">Scores</button>
+            <button id="scoreTabHistory" class="tab" type="button">History</button>
+            <button id="scoreTabGuide" class="tab" type="button">Guide</button>
+          </div>
+
+          <div id="scoreScoresPanel">
+            <div id="scoreRows"></div>
+          </div>
+
+          <div id="scoreHistoryPanel" class="guide hidden">
+            <strong>Battle History</strong>
+            <div id="scoreHistoryRows" class="log-area"></div>
+          </div>
+
+          <div id="scoreGuidePanel" class="guide hidden">
+            <strong>Card Guide</strong><br />
+            Pirate는 숫자 카드를 이깁니다. Mermaid는 Skull King에 강합니다. Escape는 일반적으로 트릭을 포기하는 카드입니다.
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <dialog id="tigressDialog" class="modal panel modal-theme">
+      <div class="tigress-shell">
+        <div class="modal-header tigress-header">
+          <div>
+            <div class="tigress-kicker">Mode Choice</div>
+            <div class="modal-title">Tigress 모드 선택</div>
+            <div class="modal-subtitle">이번 트릭에서 어떤 얼굴로 싸울지 골라주세요.</div>
+          </div>
+        </div>
+        <div class="tigress-choice-grid">
+          <button data-mode="pirate" type="button" class="tigress-choice tigress-choice-pirate">
+            <span class="tigress-choice-badge">Aggressive</span>
+            <strong class="tigress-choice-title">Pirate</strong>
+            <span class="tigress-choice-body">강한 특수 카드로 취급되어 숫자 카드를 압박합니다.</span>
+          </button>
+          <button data-mode="escape" type="button" class="tigress-choice tigress-choice-escape">
+            <span class="tigress-choice-badge">Defensive</span>
+            <strong class="tigress-choice-title">Escape</strong>
+            <span class="tigress-choice-body">트릭 경쟁에서 빠져나오며 리스크를 최소화합니다.</span>
+          </button>
+        </div>
+        <div class="tigress-footnote">선택 즉시 카드 제출이 확정됩니다.</div>
+      </div>
+    </dialog>
+
+    <dialog id="createRoomDialog" class="modal panel modal-theme">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Create Room</div>
+          <div id="createRoomSubtitle" class="modal-subtitle">1단계 · 게임 모드를 선택하세요.</div>
+        </div>
+      </div>
+
+      <div id="createRoomStepMode" class="create-step">
+        <div class="mode-grid mode-grid-2">
+          <button id="createModeCasual" class="mode-card selectable selected" type="button">
+            <div class="mode-icon">🧭</div>
+            <h3>Casual</h3>
+            <p>기본 규칙으로 부담 없이 플레이하는 입문형 모드.</p>
+            <ul>
+              <li>기본 룰셋</li>
+              <li>빠른 매치 템포</li>
+              <li>친구방 테스트 권장</li>
+            </ul>
+            <div class="spacer"></div>
+            <div class="pill">Default</div>
+          </button>
+
+          <button id="createModeAdvanced" class="mode-card selectable" type="button">
+            <div class="mode-icon">⚓</div>
+            <h3>Advanced Rule</h3>
+            <p>고급 룰을 활성화해 전략성과 변수를 확장한 모드.</p>
+            <ul>
+              <li>고급 규칙 활성화</li>
+              <li>심화 전술 플레이</li>
+              <li>숙련자 추천</li>
+            </ul>
+            <div class="spacer"></div>
+            <div class="pill">Advanced</div>
+          </button>
+        </div>
+
+        <div class="footer-cta">
+          <button id="cancelCreateRoomBtn" class="btn secondary" type="button">취소</button>
+          <button id="createRoomNextBtn" class="btn primary" type="button">다음</button>
+        </div>
+      </div>
+
+      <div id="createRoomStepOptions" class="create-step hidden">
+        <div class="form-grid compact stack-fields">
+          <div class="field">
+            <label for="roomNameInput">방 이름</label>
+            <input id="roomNameInput" type="text" maxlength="40" value="Skull King Room" />
+          </div>
+          <div class="field">
+            <label for="maxPlayersInput">최대 인원</label>
+            <input id="maxPlayersInput" type="number" min="2" max="8" value="6" />
+          </div>
+        </div>
+
+        <div class="form-grid compact check-grid">
+          <div class="field inline-check">
+            <label class="option-toggle">
+              <span class="option-toggle-text">보너스 점수 사용</span>
+              <input id="bonusEnabledInput" class="option-toggle-input" type="checkbox" />
+              <span class="option-toggle-ui" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="field inline-check">
+            <label class="option-toggle">
+              <span class="option-toggle-text">고급 룰 사용</span>
+              <input id="advancedRulesInput" class="option-toggle-input" type="checkbox" />
+              <span class="option-toggle-ui" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="field inline-check">
+            <label class="option-toggle">
+              <span class="option-toggle-text">비밀번호 사용</span>
+              <input id="useRoomPasswordInput" class="option-toggle-input" type="checkbox" />
+              <span class="option-toggle-ui" aria-hidden="true"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="roomPasswordFieldWrap" class="field hidden">
+          <label for="roomPasswordInput">비밀번호</label>
+          <input id="roomPasswordInput" type="password" maxlength="32" placeholder="비밀번호를 입력하세요" />
+        </div>
+
+        <div class="footer-cta">
+          <button id="createRoomBackBtn" class="btn secondary" type="button">이전</button>
+          <button id="confirmCreateRoomBtn" class="btn primary" type="button">생성</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="findRoomDialog" class="modal panel modal-theme">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Find Room</div>
+          <div class="modal-subtitle">입장할 테이블을 선택하세요.</div>
+        </div>
+      </div>
+      <div id="roomList" class="room-list room-list-modal"></div>
+      <div class="footer-cta">
+        <button id="closeFindRoomBtn" class="btn secondary" type="button">닫기</button>
+        <button id="refreshRoomsInModalBtn" class="btn primary" type="button">새로고침</button>
+      </div>
+    </dialog>
+
+    <dialog id="joinPasswordDialog" class="modal panel modal-theme">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Room Password</div>
+          <div class="modal-subtitle">비공개 방에 입장하려면 비밀번호가 필요합니다.</div>
+        </div>
+      </div>
+      <div class="password-room-chip">
+        <span class="pill">Private Room</span>
+        <strong id="joinPasswordRoomName">Private Room</strong>
+      </div>
+      <div class="field">
+        <label for="joinPasswordInput">비밀번호</label>
+        <input id="joinPasswordInput" type="password" maxlength="32" placeholder="비밀번호를 입력하세요" />
+      </div>
+      <div id="joinPasswordError" class="join-password-error hidden"></div>
+      <div class="footer-cta">
+        <button id="joinPasswordCancelBtn" class="btn secondary" type="button">취소</button>
+        <button id="joinPasswordSubmitBtn" class="btn primary" type="button">입장</button>
+      </div>
+    </dialog>
+
+    <dialog id="bidDialog" class="modal panel modal-theme">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">비딩</div>
+          <div class="modal-subtitle">이번 라운드에서 가져갈 트릭 수를 예측하세요.</div>
+        </div>
+      </div>
+      <div id="bidDialogHint" class="bid-round-badge">Round -</div>
+      <div class="bid-picker-row">
+        <button id="bidMinusBtn" type="button" class="bid-step-btn">-</button>
+        <input id="bidDialogInput" class="bid-number" type="number" min="0" />
+        <button id="bidPlusBtn" type="button" class="bid-step-btn">+</button>
+      </div>
+      <div class="bid-actions">
+        <button id="bidDialogSubmitBtn" type="button" class="bid-confirm-btn">제출</button>
+      </div>
+    </dialog>
+
+    <dialog id="eventDialog" class="modal panel modal-theme">
+      <div class="modal-header">
+        <div>
+          <div id="eventDialogTitle" class="modal-title">라운드 결과</div>
+          <div class="modal-subtitle">점수와 트릭 결과를 확인하세요.</div>
+        </div>
+      </div>
+      <div id="eventDialogBody"></div>
+    </dialog>
+
+    <dialog id="roundResultDialog" class="modal panel modal-theme round-result-modal-theme">
+      <div class="round-result-shell">
+        <div class="round-result-hero">
+          <div class="round-result-kicker">Round Settlement</div>
+          <div class="round-result-header">
+            <div>
+              <div id="roundResultTitle" class="modal-title">Round Result</div>
+              <div class="modal-subtitle">이번 라운드 정산을 확인하세요.</div>
+            </div>
+            <button id="closeRoundResultBtn" class="round-result-close" type="button">닫기</button>
+          </div>
+        </div>
+        <div id="roundResultBody" class="round-result-body"></div>
+      </div>
+    </dialog>
+
+    <dialog id="finishDialog" class="modal panel modal-theme result-modal-theme">
+      <div class="result-modal">
+        <div class="result-hero">
+          <div class="result-header">
+            <div>
+              <div id="finishSummaryText" class="result-kicker">Final Voyage</div>
+              <div id="finishResultTitle" class="result-title">Game Result</div>
+              <div id="finishResultSub" class="result-sub">라운드 정산 결과를 확인하세요.</div>
+            </div>
+            <div class="result-badge-stack">
+              <div id="finishResultCoin" class="coin">+0</div>
+              <span id="finishSummaryPill" class="pill">-</span>
+            </div>
+          </div>
+          <div class="finish-hero-scene" aria-hidden="true"></div>
+        </div>
+
+        <div class="summary-banner">
+          <span>최종 리더보드</span>
+          <span class="pill">Skull King</span>
+        </div>
+
+        <div class="result-table">
+          <div class="head-label">
+            <div>Rank</div><div>Player</div><div>Bid</div><div>Won</div><div>Delta</div><div>Total</div><div>Status</div>
+          </div>
+          <div id="finishResultRows"></div>
+        </div>
+
+        <div class="events-footer">
+          <div id="finishEventChips" class="event-chips">
+            <div class="pill">Final Scoreboard</div>
+          </div>
+          <div class="inline-actions">
+            <button id="finishToHomeBtn" class="btn secondary" type="button">홈으로</button>
+            <button id="finishToLobbyBtn" class="btn primary" type="button">다시하기</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="logDialog" class="modal panel modal-theme">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">배틀로그</div>
+          <div class="modal-subtitle">최근 전투 기록을 확인하세요.</div>
+        </div>
+        <button id="closeLogBtn" type="button">닫기</button>
+      </div>
+      <div id="logArea" class="log-area"></div>
+    </dialog>
