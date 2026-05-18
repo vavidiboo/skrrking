@@ -1341,7 +1341,7 @@ var require_react_dom_development = __commonJS({
         return dispatcher;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React12 = require_react(), Internals = {
+      var React14 = require_react(), Internals = {
         d: {
           f: noop2,
           r: function() {
@@ -1359,7 +1359,7 @@ var require_react_dom_development = __commonJS({
         },
         p: 0,
         findDOMNode: null
-      }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React12.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+      }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
         "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
       );
@@ -2894,7 +2894,7 @@ var require_react_dom_client_development = __commonJS({
         "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
       }
       function validateOptionProps(element, props) {
-        null == props.value && ("object" === typeof props.children && null !== props.children ? React12.Children.forEach(props.children, function(child) {
+        null == props.value && ("object" === typeof props.children && null !== props.children ? React14.Children.forEach(props.children, function(child) {
           null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
             "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
           ));
@@ -18526,14 +18526,14 @@ var require_react_dom_client_development = __commonJS({
         ));
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var Scheduler = require_scheduler(), React12 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+      var Scheduler = require_scheduler(), React14 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
       /* @__PURE__ */ Symbol.for("react.scope");
       var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
       /* @__PURE__ */ Symbol.for("react.legacy_hidden");
       /* @__PURE__ */ Symbol.for("react.tracing_marker");
       var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
       /* @__PURE__ */ Symbol.for("react.view_transition");
-      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React12.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
         pending: false,
         data: null,
         method: null,
@@ -21321,7 +21321,7 @@ var require_react_dom_client_development = __commonJS({
         }
       };
       (function() {
-        var isomorphicReactPackageVersion = React12.version;
+        var isomorphicReactPackageVersion = React14.version;
         if ("19.2.6" !== isomorphicReactPackageVersion)
           throw Error(
             'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.6\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -21915,18 +21915,18 @@ var require_react_jsx_runtime_development = __commonJS({
       function isValidElement2(object) {
         return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
       }
-      var React12 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React12.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+      var React14 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
         return null;
       };
-      React12 = {
+      React14 = {
         react_stack_bottom_frame: function(callStackForError) {
           return callStackForError();
         }
       };
       var specialPropKeyWarningShown;
       var didWarnAboutElementRef = {};
-      var unknownOwnerDebugStack = React12.react_stack_bottom_frame.bind(
-        React12,
+      var unknownOwnerDebugStack = React14.react_stack_bottom_frame.bind(
+        React14,
         UnknownOwner
       )();
       var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -21979,7 +21979,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
         return x2 === y && (0 !== x2 || 1 / x2 === 1 / y) || x2 !== x2 && y !== y;
       }
       function useSyncExternalStore$2(subscribe, getSnapshot) {
-        didWarnOld18Alpha || void 0 === React12.startTransition || (didWarnOld18Alpha = true, console.error(
+        didWarnOld18Alpha || void 0 === React14.startTransition || (didWarnOld18Alpha = true, console.error(
           "You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release."
         ));
         var value = getSnapshot();
@@ -22001,7 +22001,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
           },
           [subscribe, value, getSnapshot]
         );
-        useEffect12(
+        useEffect13(
           function() {
             checkIfSnapshotChanged(inst) && forceUpdate({ inst });
             return subscribe(function() {
@@ -22027,8 +22027,8 @@ var require_use_sync_external_store_shim_development = __commonJS({
         return getSnapshot();
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React12 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useState9 = React12.useState, useEffect12 = React12.useEffect, useLayoutEffect5 = React12.useLayoutEffect, useDebugValue = React12.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-      exports.useSyncExternalStore = void 0 !== React12.useSyncExternalStore ? React12.useSyncExternalStore : shim;
+      var React14 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useState9 = React14.useState, useEffect13 = React14.useEffect, useLayoutEffect5 = React14.useLayoutEffect, useDebugValue = React14.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+      exports.useSyncExternalStore = void 0 !== React14.useSyncExternalStore ? React14.useSyncExternalStore : shim;
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
     })();
   }
@@ -22055,14 +22055,14 @@ var require_with_selector_development = __commonJS({
         return x2 === y && (0 !== x2 || 1 / x2 === 1 / y) || x2 !== x2 && y !== y;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React12 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = shim.useSyncExternalStore, useRef11 = React12.useRef, useEffect12 = React12.useEffect, useMemo13 = React12.useMemo, useDebugValue = React12.useDebugValue;
+      var React14 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = shim.useSyncExternalStore, useRef12 = React14.useRef, useEffect13 = React14.useEffect, useMemo15 = React14.useMemo, useDebugValue = React14.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-        var instRef = useRef11(null);
+        var instRef = useRef12(null);
         if (null === instRef.current) {
           var inst = { hasValue: false, value: null };
           instRef.current = inst;
         } else inst = instRef.current;
-        instRef = useMemo13(
+        instRef = useMemo15(
           function() {
             function memoizedSelector(nextSnapshot) {
               if (!hasMemo) {
@@ -22098,7 +22098,7 @@ var require_with_selector_development = __commonJS({
           [getSnapshot, getServerSnapshot, selector, isEqual]
         );
         var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-        useEffect12(
+        useEffect13(
           function() {
             inst.hasValue = true;
             inst.value = value;
@@ -29469,7 +29469,7 @@ var import_client = __toESM(require_client());
 var import_react_dom3 = __toESM(require_react_dom());
 
 // discord_activity_skullking/app/src/App.tsx
-var import_react32 = __toESM(require_react());
+var import_react34 = __toESM(require_react());
 var import_react_dom2 = __toESM(require_react_dom());
 
 // discord_activity_skullking/app/src/shell.html
@@ -39362,7 +39362,7 @@ function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
 }
 
 // discord_activity_skullking/app/src/rendering/GameCanvas.tsx
-var import_react31 = __toESM(require_react());
+var import_react33 = __toESM(require_react());
 
 // node_modules/@react-three/fiber/dist/events-b389eeca.esm.js
 var React6 = __toESM(require_react());
@@ -71856,6 +71856,13 @@ function useStore() {
 function useThree(selector = (state2) => state2, equalityFn) {
   return useStore()(selector, equalityFn);
 }
+function useFrame(callback, renderPriority = 0) {
+  const store = useStore();
+  const subscribe = store.getState().internal.subscribe;
+  const ref = useMutableCallback(callback);
+  useIsomorphicLayoutEffect2(() => subscribe(ref, renderPriority, store), [renderPriority, subscribe, store]);
+  return null;
+}
 var memoizedLoaders = /* @__PURE__ */ new WeakMap();
 var isConstructor$1 = (value) => {
   var _value$prototype;
@@ -80677,12 +80684,410 @@ function Canvas(props) {
   });
 }
 
-// discord_activity_skullking/app/src/rendering/GameBoard.tsx
+// discord_activity_skullking/app/src/rendering/GameScene.tsx
+var import_react32 = __toESM(require_react());
+
+// discord_activity_skullking/app/src/rendering/EffectScene.tsx
 var import_react29 = __toESM(require_react());
+
+// discord_activity_skullking/app/src/rendering/effectChannels/cameraChannel.ts
+var SHAKE_DURATION_MIN_MS = 200;
+var SHAKE_DURATION_MAX_MS = 450;
+function decideShakeAmplitude(event, qualityTier) {
+  if (qualityTier === "lite") {
+    return 0;
+  }
+  const hasCameraChannel = event.channels.includes("camera");
+  const strength = event.payload.preset.shakeStrength;
+  let base = 0.04;
+  if (hasCameraChannel) {
+    if (strength === "light") base = 0.1;
+    else if (strength === "medium") base = 0.16;
+    else if (strength === "heavy") base = 0.24;
+  }
+  const tierMultiplier = qualityTier === "ultra" || qualityTier === "high" ? 1 : qualityTier === "medium" ? 0.85 : 0.6;
+  return base * tierMultiplier;
+}
+function decideShakeDuration(event) {
+  const strength = event.payload.preset.shakeStrength;
+  const raw = strength === "heavy" ? 420 : strength === "medium" ? 320 : strength === "light" ? 240 : 220;
+  return Math.max(SHAKE_DURATION_MIN_MS, Math.min(SHAKE_DURATION_MAX_MS, raw));
+}
+function decideShakeFrequency(event) {
+  const strength = event.payload.preset.shakeStrength;
+  if (strength === "heavy") return 22;
+  if (strength === "medium") return 18;
+  return 14;
+}
+function applyCameraShake(camera, baseline, shake, nowMs) {
+  const elapsed = nowMs - shake.startedAt;
+  if (elapsed >= shake.durationMs || shake.amplitude <= 0) {
+    camera.position.copy(baseline);
+    return false;
+  }
+  const t2 = elapsed / shake.durationMs;
+  const decay = (1 - t2) * (1 - t2);
+  const phase = elapsed / 1e3 * shake.frequencyHz * Math.PI * 2;
+  const dx = Math.sin(phase) * shake.amplitude * decay;
+  const dy = Math.cos(phase * 1.3) * shake.amplitude * 0.6 * decay;
+  camera.position.set(baseline.x + dx, baseline.y + dy, baseline.z);
+  return true;
+}
+
+// discord_activity_skullking/app/src/rendering/effectChannels/boardChannel.ts
+var RIPPLE_DURATION_MIN_MS = 360;
+var RIPPLE_DURATION_MAX_MS = 720;
+var RIPPLE_OPACITY_BASE = 0.55;
+function decideBoardRipple(event, qualityTier) {
+  if (qualityTier === "lite") return null;
+  if (!event.channels.includes("board")) return null;
+  const color2 = event.payload.preset.auraColors?.[0] || "#7ec7b8";
+  const radiusBase = 1.9;
+  const radiusMultiplier = qualityTier === "ultra" || qualityTier === "high" ? 1 : qualityTier === "medium" ? 0.85 : 0.7;
+  const durationRaw = Math.round(event.payload.preset.totalDuration * 1e3 * 0.55);
+  const durationMs = Math.max(
+    RIPPLE_DURATION_MIN_MS,
+    Math.min(RIPPLE_DURATION_MAX_MS, durationRaw || 480)
+  );
+  const opacityPeak = qualityTier === "low" ? RIPPLE_OPACITY_BASE * 0.7 : RIPPLE_OPACITY_BASE;
+  return {
+    startedAt: event.createdAt || Date.now(),
+    durationMs,
+    radius: radiusBase * radiusMultiplier,
+    opacityPeak,
+    eventId: event.id,
+    color: color2
+  };
+}
+function sampleBoardRipple(ripple, nowMs) {
+  const elapsed = nowMs - ripple.startedAt;
+  if (elapsed < 0 || elapsed >= ripple.durationMs) {
+    return null;
+  }
+  const t2 = elapsed / ripple.durationMs;
+  const easeOut2 = 1 - Math.pow(1 - t2, 2.4);
+  const scale2 = 0.4 + easeOut2 * 0.6;
+  const opacity = ripple.opacityPeak * (1 - t2 * t2);
+  return { scale: scale2, opacity };
+}
+
+// discord_activity_skullking/app/src/rendering/effectChannels/particlesChannel.ts
+var BURST_DURATION_MIN_MS = 600;
+var BURST_DURATION_MAX_MS = 900;
+function tierCount(qualityTier) {
+  if (qualityTier === "lite") return 0;
+  if (qualityTier === "low") return 8;
+  if (qualityTier === "medium") return 16;
+  return 24;
+}
+function decideParticleBurst(event, qualityTier) {
+  if (!event.channels.includes("particles")) return null;
+  const count = tierCount(qualityTier);
+  if (count === 0) return null;
+  const strong = event.channels.includes("board");
+  const spawnRadius = strong ? 0.55 : 0.35;
+  const velocity = strong ? 1.6 : 1.1;
+  const color2 = event.payload.preset.auraColors?.[0] || "#fff5d5";
+  const durationRaw = Math.round(event.payload.preset.totalDuration * 1e3 * 0.5);
+  const durationMs = Math.max(
+    BURST_DURATION_MIN_MS,
+    Math.min(BURST_DURATION_MAX_MS, durationRaw || 720)
+  );
+  return {
+    startedAt: event.createdAt || Date.now(),
+    durationMs,
+    count,
+    velocity,
+    spawnRadius,
+    color: color2,
+    eventId: event.id
+  };
+}
+function buildParticlePattern(burst) {
+  const angles = new Float32Array(burst.count);
+  const lifts = new Float32Array(burst.count);
+  for (let i3 = 0; i3 < burst.count; i3 += 1) {
+    angles[i3] = i3 / burst.count * Math.PI * 2 + i3 % 3 * 0.07;
+    lifts[i3] = 0.3 + i3 * 37 % 10 / 10;
+  }
+  return { angles, lifts };
+}
+function sampleParticleBurst(burst, pattern, positions, nowMs) {
+  const elapsed = nowMs - burst.startedAt;
+  if (elapsed < 0 || elapsed >= burst.durationMs) {
+    return null;
+  }
+  const t2 = elapsed / burst.durationMs;
+  const easeOut2 = 1 - Math.pow(1 - t2, 2);
+  const radius = burst.spawnRadius + burst.velocity * easeOut2 * 0.45;
+  const lift = 0.6 * (1 - Math.pow(t2 - 0.4, 2) * 2.4);
+  for (let i3 = 0; i3 < burst.count; i3 += 1) {
+    const angle = pattern.angles[i3];
+    const liftBias = pattern.lifts[i3];
+    const x2 = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    const y = Math.max(0, lift) * liftBias;
+    const o3 = i3 * 3;
+    positions[o3 + 0] = x2;
+    positions[o3 + 1] = y;
+    positions[o3 + 2] = z;
+  }
+  const opacity = (1 - t2) * (1 - t2);
+  return { positions, opacity };
+}
+
+// discord_activity_skullking/app/src/rendering/worldEffectQueue.ts
+function createWorldEffectQueueState() {
+  return {
+    activeEventId: null,
+    pending: []
+  };
+}
+function enqueueWorldEffectEvent(state2, event) {
+  state2.pending.push(event);
+}
+function cancelWorldEffectEvent(state2, eventId) {
+  state2.pending = state2.pending.filter((event) => event.id !== eventId);
+  if (state2.activeEventId !== eventId) {
+    return false;
+  }
+  state2.activeEventId = null;
+  return true;
+}
+function takeNextWorldEffectEvent(state2) {
+  if (state2.activeEventId) {
+    return null;
+  }
+  const next = state2.pending.shift() || null;
+  if (!next) {
+    return null;
+  }
+  state2.activeEventId = next.id;
+  return next;
+}
+function finishActiveWorldEffect(state2, eventId) {
+  if (state2.activeEventId === eventId) {
+    state2.activeEventId = null;
+  }
+}
+
+// discord_activity_skullking/app/src/rendering/EffectScene.tsx
 var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+function isCardEffectEvent2(event) {
+  return event.type.startsWith("card.");
+}
+function emptyActive() {
+  return {
+    shake: null,
+    ripple: null,
+    burst: null,
+    burstPattern: null,
+    burstPositions: null
+  };
+}
+function hasRunningWorldEffects(active) {
+  return Boolean(active.shake || active.ripple || active.burst);
+}
+function startWorldEffectEvent(event, qualityTier, active, positionBuffer, nowMs) {
+  let started = false;
+  const amplitude = decideShakeAmplitude(event, qualityTier);
+  if (amplitude > 0) {
+    active.shake = {
+      startedAt: nowMs,
+      durationMs: decideShakeDuration(event),
+      amplitude,
+      frequencyHz: decideShakeFrequency(event),
+      eventId: event.id
+    };
+    started = true;
+  }
+  const ripple = decideBoardRipple(event, qualityTier);
+  if (ripple) {
+    active.ripple = { ...ripple, startedAt: nowMs };
+    started = true;
+  }
+  const burst = decideParticleBurst(event, qualityTier);
+  if (burst) {
+    const stamped = { ...burst, startedAt: nowMs };
+    active.burst = stamped;
+    active.burstPattern = buildParticlePattern(stamped);
+    active.burstPositions = positionBuffer;
+    for (let i3 = 0; i3 < positionBuffer.length; i3 += 1) positionBuffer[i3] = 0;
+    started = true;
+  }
+  return started;
+}
+function EffectScene({ qualityTier, cameraFraming }) {
+  const camera = useThree((state2) => state2.camera);
+  const cameraBaselineRef = (0, import_react29.useRef)(new Vector3(...cameraFraming.position));
+  const activeRef = (0, import_react29.useRef)(emptyActive());
+  const queueRef = (0, import_react29.useRef)(createWorldEffectQueueState());
+  const rippleMeshRef = (0, import_react29.useRef)(null);
+  const pointsRef = (0, import_react29.useRef)(null);
+  const pointsGeometryRef = (0, import_react29.useRef)(null);
+  const positionBuffer = (0, import_react29.useMemo)(() => new Float32Array(24 * 3), []);
+  (0, import_react29.useEffect)(() => {
+    const unsubscribe = onEffectBusMessage((message) => {
+      if (message.kind === "cancel") {
+        const active = activeRef.current;
+        const cancelledActive = cancelWorldEffectEvent(queueRef.current, message.id);
+        if (active.shake?.eventId === message.id) active.shake = null;
+        if (active.ripple?.eventId === message.id) active.ripple = null;
+        if (active.burst?.eventId === message.id) {
+          active.burst = null;
+          active.burstPattern = null;
+          active.burstPositions = null;
+        }
+        if (cancelledActive && !hasRunningWorldEffects(active)) {
+          finishActiveWorldEffect(queueRef.current, message.id);
+        }
+        return;
+      }
+      if (message.kind !== "dispatch") return;
+      const event = message.event;
+      if (!isCardEffectEvent2(event)) return;
+      if (qualityTier === "lite") return;
+      enqueueWorldEffectEvent(queueRef.current, event);
+    });
+    return unsubscribe;
+  }, [positionBuffer, qualityTier]);
+  (0, import_react29.useEffect)(() => {
+    cameraBaselineRef.current.set(
+      cameraFraming.position[0],
+      cameraFraming.position[1],
+      cameraFraming.position[2]
+    );
+  }, [cameraFraming]);
+  useFrame(() => {
+    if (qualityTier === "lite") return;
+    const active = activeRef.current;
+    const now3 = Date.now();
+    if (!hasRunningWorldEffects(active)) {
+      let next = takeNextWorldEffectEvent(queueRef.current);
+      while (next) {
+        const started = startWorldEffectEvent(next, qualityTier, active, positionBuffer, now3);
+        if (started) {
+          break;
+        }
+        finishActiveWorldEffect(queueRef.current, next.id);
+        next = takeNextWorldEffectEvent(queueRef.current);
+      }
+    }
+    if (active.shake) {
+      const stillRunning = applyCameraShake(camera, cameraBaselineRef.current, active.shake, now3);
+      if (!stillRunning) {
+        camera.position.copy(cameraBaselineRef.current);
+        active.shake = null;
+      }
+    }
+    const rippleMesh = rippleMeshRef.current;
+    if (rippleMesh) {
+      if (active.ripple) {
+        const sample = sampleBoardRipple(active.ripple, now3);
+        if (sample) {
+          rippleMesh.visible = true;
+          const s = active.ripple.radius * sample.scale;
+          rippleMesh.scale.set(s, s, 1);
+          const material = rippleMesh.material;
+          if (material) {
+            material.opacity = sample.opacity;
+            material.transparent = true;
+            material.color?.set?.(active.ripple.color);
+          }
+        } else {
+          active.ripple = null;
+          rippleMesh.visible = false;
+        }
+      } else if (rippleMesh.visible) {
+        rippleMesh.visible = false;
+      }
+    }
+    const points = pointsRef.current;
+    const geom = pointsGeometryRef.current;
+    if (points && geom) {
+      if (active.burst && active.burstPattern && active.burstPositions) {
+        const sample = sampleParticleBurst(active.burst, active.burstPattern, active.burstPositions, now3);
+        if (sample) {
+          points.visible = true;
+          const attr = geom.getAttribute("position");
+          if (attr) {
+            attr.array.set(sample.positions);
+            attr.needsUpdate = true;
+            geom.setDrawRange(0, active.burst.count);
+          }
+          const material = points.material;
+          if (material) {
+            material.opacity = sample.opacity;
+            material.transparent = true;
+            material.color?.set?.(active.burst.color);
+          }
+        } else {
+          active.burst = null;
+          active.burstPattern = null;
+          active.burstPositions = null;
+          points.visible = false;
+        }
+      } else if (points.visible) {
+        points.visible = false;
+      }
+    }
+    if (!hasRunningWorldEffects(active) && queueRef.current.activeEventId) {
+      finishActiveWorldEffect(queueRef.current, queueRef.current.activeEventId);
+    }
+  });
+  const pointsGeometry = (0, import_react29.useMemo)(() => {
+    const g2 = new BufferGeometry();
+    g2.setAttribute("position", new Float32BufferAttribute(new Float32Array(24 * 3), 3));
+    g2.setDrawRange(0, 0);
+    return g2;
+  }, []);
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("group", { name: "EffectScene", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      "mesh",
+      {
+        ref: rippleMeshRef,
+        rotation: [-Math.PI / 2, 0, 0],
+        position: [0, 0.012, 0],
+        visible: false,
+        name: "BoardRipple",
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ringGeometry", { args: [0.78, 1.02, 64] }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("meshBasicMaterial", { color: "#fff5d5", transparent: true, opacity: 0, depthWrite: false })
+        ]
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      "points",
+      {
+        ref: pointsRef,
+        position: [0, 0.05, 0],
+        visible: false,
+        name: "WorldParticleBurst",
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("primitive", { object: pointsGeometry, ref: pointsGeometryRef, attach: "geometry" }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            "pointsMaterial",
+            {
+              size: 0.08,
+              color: "#fff5d5",
+              transparent: true,
+              opacity: 0,
+              depthWrite: false,
+              sizeAttenuation: true
+            }
+          )
+        ]
+      }
+    )
+  ] });
+}
+
+// discord_activity_skullking/app/src/rendering/GameBoard.tsx
+var import_react30 = __toESM(require_react());
+var import_jsx_runtime10 = __toESM(require_jsx_runtime());
 var TRICK_CENTER_ANCHOR = "trickCenter";
-var GameBoard = (0, import_react29.forwardRef)(function GameBoard2({ seatCount = 6 }, ref) {
-  const seatPositions = (0, import_react29.useMemo)(() => {
+var GameBoard = (0, import_react30.forwardRef)(function GameBoard2({ seatCount = 6 }, ref) {
+  const seatPositions = (0, import_react30.useMemo)(() => {
     const safeCount = Math.max(2, Math.min(8, seatCount));
     const rx = 2.6;
     const rz = 1.7;
@@ -80695,17 +81100,17 @@ var GameBoard = (0, import_react29.forwardRef)(function GameBoard2({ seatCount =
       };
     });
   }, [seatCount]);
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("group", { ref, name: "GameBoard", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0, 0], name: "TableSurface", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("planeGeometry", { args: [6.4, 4.2] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("meshStandardMaterial", { color: "#1d474e", roughness: 0.85, metalness: 0.05 })
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("group", { ref, name: "GameBoard", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0, 0], name: "TableSurface", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("planeGeometry", { args: [6.4, 4.2] }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("meshStandardMaterial", { color: "#1d474e", roughness: 0.85, metalness: 0.05 })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 1e-3, 0], name: "TableRing", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ringGeometry", { args: [2.1, 2.18, 64] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("meshBasicMaterial", { color: "#7ec7b8", transparent: true, opacity: 0.32 })
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 1e-3, 0], name: "TableRing", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("ringGeometry", { args: [2.1, 2.18, 64] }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("meshBasicMaterial", { color: "#7ec7b8", transparent: true, opacity: 0.32 })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("group", { name: TRICK_CENTER_ANCHOR, position: [0, 0.01, 0] }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("group", { name: "SeatAnchors", children: seatPositions.map((seat) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("group", { name: TRICK_CENTER_ANCHOR, position: [0, 0.01, 0] }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("group", { name: "SeatAnchors", children: seatPositions.map((seat) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       "group",
       {
         name: `SeatAnchor-${seat.index}`,
@@ -80717,35 +81122,41 @@ var GameBoard = (0, import_react29.forwardRef)(function GameBoard2({ seatCount =
 });
 
 // discord_activity_skullking/app/src/rendering/GameCamera.tsx
-var import_react30 = __toESM(require_react());
-function GameCamera({ aspect: aspect2 }) {
+var import_react31 = __toESM(require_react());
+function resolveGameCameraFraming(aspect2) {
+  const compact = aspect2 < 0.95;
+  return {
+    aspect: aspect2,
+    fov: compact ? 48 : 42,
+    position: compact ? [0, 5.2, 5.6] : [0, 4.6, 5],
+    lookAt: [0, 0, 0]
+  };
+}
+function GameCamera({ framing }) {
   const camera = useThree((state2) => state2.camera);
-  (0, import_react30.useEffect)(() => {
+  (0, import_react31.useEffect)(() => {
     if (!(camera instanceof PerspectiveCamera)) {
       return;
     }
-    const compact = aspect2 < 0.95;
-    const fov2 = compact ? 48 : 42;
-    const position = compact ? [0, 5.2, 5.6] : [0, 4.6, 5];
-    camera.position.set(position[0], position[1], position[2]);
-    camera.lookAt(0, 0, 0);
-    camera.fov = fov2;
-    camera.aspect = aspect2;
+    camera.position.set(framing.position[0], framing.position[1], framing.position[2]);
+    camera.lookAt(framing.lookAt[0], framing.lookAt[1], framing.lookAt[2]);
+    camera.fov = framing.fov;
+    camera.aspect = framing.aspect;
     camera.near = 0.1;
     camera.far = 50;
     camera.updateProjectionMatrix();
-  }, [aspect2, camera]);
+  }, [camera, framing]);
   return null;
 }
 
 // discord_activity_skullking/app/src/rendering/SceneLighting.tsx
-var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+var import_jsx_runtime11 = __toESM(require_jsx_runtime());
 function SceneLighting({ qualityTier }) {
   const ambientIntensity = qualityTier === "lite" ? 0.85 : 0.65;
   const directionalIntensity = qualityTier === "ultra" ? 1.05 : qualityTier === "high" ? 0.95 : qualityTier === "medium" ? 0.85 : 0.7;
-  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("ambientLight", { intensity: ambientIntensity, color: "#fff5dc" }),
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("ambientLight", { intensity: ambientIntensity, color: "#fff5dc" }),
+    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
       "directionalLight",
       {
         position: [3.2, 6.4, 4.8],
@@ -80753,7 +81164,7 @@ function SceneLighting({ qualityTier }) {
         color: "#fff1c2"
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
       "directionalLight",
       {
         position: [-4, 3.2, -2.6],
@@ -80765,12 +81176,14 @@ function SceneLighting({ qualityTier }) {
 }
 
 // discord_activity_skullking/app/src/rendering/GameScene.tsx
-var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+var import_jsx_runtime12 = __toESM(require_jsx_runtime());
 function GameScene({ qualityTier, aspect: aspect2, seatCount }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(GameCamera, { aspect: aspect2 }),
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(SceneLighting, { qualityTier }),
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(GameBoard, { seatCount })
+  const cameraFraming = (0, import_react32.useMemo)(() => resolveGameCameraFraming(aspect2), [aspect2]);
+  return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(import_jsx_runtime12.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(GameCamera, { framing: cameraFraming }),
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(SceneLighting, { qualityTier }),
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(GameBoard, { seatCount }),
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EffectScene, { qualityTier, cameraFraming })
   ] });
 }
 
@@ -80787,7 +81200,7 @@ var Z_LAYERS = {
 };
 
 // discord_activity_skullking/app/src/rendering/GameCanvas.tsx
-var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+var import_jsx_runtime13 = __toESM(require_jsx_runtime());
 function readViewportSize() {
   if (typeof window === "undefined") {
     return { width: 1280, height: 720 };
@@ -80811,8 +81224,8 @@ function dprForTier(tier) {
 }
 function GameCanvas({ seatCount, qualityTier }) {
   const tier = qualityTier ?? resolveEffectQualityTier();
-  const [viewport, setViewport] = (0, import_react31.useState)(() => readViewportSize());
-  (0, import_react31.useEffect)(() => {
+  const [viewport, setViewport] = (0, import_react33.useState)(() => readViewportSize());
+  (0, import_react33.useEffect)(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -80827,7 +81240,7 @@ function GameCanvas({ seatCount, qualityTier }) {
     };
   }, []);
   const aspect2 = viewport.width / Math.max(1, viewport.height);
-  return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
     "div",
     {
       className: "game-canvas-root",
@@ -80840,7 +81253,7 @@ function GameCanvas({ seatCount, qualityTier }) {
         // DOM overlay above. Stage 7+ may re-enable for world-space picking.
         pointerEvents: "none"
       },
-      children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
+      children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(
         Canvas,
         {
           dpr: dprForTier(tier),
@@ -80852,8 +81265,8 @@ function GameCanvas({ seatCount, qualityTier }) {
           },
           style: { width: "100%", height: "100%" },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("color", { attach: "background", args: ["#0b1424"] }),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(GameScene, { qualityTier: tier, aspect: aspect2, seatCount })
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("color", { attach: "background", args: ["#0b1424"] }),
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(GameScene, { qualityTier: tier, aspect: aspect2, seatCount })
           ]
         }
       )
@@ -80862,11 +81275,11 @@ function GameCanvas({ seatCount, qualityTier }) {
 }
 
 // discord_activity_skullking/app/src/rendering/GameOverlay.tsx
-var import_jsx_runtime13 = __toESM(require_jsx_runtime());
+var import_jsx_runtime14 = __toESM(require_jsx_runtime());
 
 // discord_activity_skullking/app/src/App.tsx
-var import_jsx_runtime14 = __toESM(require_jsx_runtime());
-var ShellErrorBoundary = class extends import_react32.Component {
+var import_jsx_runtime15 = __toESM(require_jsx_runtime());
+var ShellErrorBoundary = class extends import_react34.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -80879,10 +81292,10 @@ var ShellErrorBoundary = class extends import_react32.Component {
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { id: "react-shell-error", style: { padding: "20px", color: "#fff", background: "#1a1a2e", minHeight: "100vh", fontFamily: "monospace" }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("h2", { style: { color: "#e74c3c" }, children: "UI \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4" }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { children: "\uAC8C\uC784 \uB85C\uC9C1\uC740 \uC815\uC0C1 \uC791\uB3D9 \uC911\uC785\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68\uD558\uBA74 \uBCF5\uAD6C\uB429\uB2C8\uB2E4." }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { id: "react-shell-error", style: { padding: "20px", color: "#fff", background: "#1a1a2e", minHeight: "100vh", fontFamily: "monospace" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h2", { style: { color: "#e74c3c" }, children: "UI \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4" }),
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { children: "\uAC8C\uC784 \uB85C\uC9C1\uC740 \uC815\uC0C1 \uC791\uB3D9 \uC911\uC785\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68\uD558\uBA74 \uBCF5\uAD6C\uB429\uB2C8\uB2E4." }),
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
           "button",
           {
             type: "button",
@@ -80891,9 +81304,9 @@ var ShellErrorBoundary = class extends import_react32.Component {
             children: "\uC0C8\uB85C\uACE0\uCE68"
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("details", { style: { marginTop: "12px", fontSize: "12px", color: "#aaa" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("summary", { children: "\uC624\uB958 \uC0C1\uC138" }),
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-all" }, children: String(this.state.error?.message || this.state.error || "Unknown error") })
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("details", { style: { marginTop: "12px", fontSize: "12px", color: "#aaa" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("summary", { children: "\uC624\uB958 \uC0C1\uC138" }),
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-all" }, children: String(this.state.error?.message || this.state.error || "Unknown error") })
         ] })
       ] });
     }
@@ -80955,11 +81368,11 @@ function avatarColor(seed) {
   return `linear-gradient(180deg, hsl(${hue} 70% 66%), hsl(${(hue + 36) % 360} 55% 42%))`;
 }
 function useReactUiState() {
-  return (0, import_react32.useSyncExternalStore)(subscribeReactUi, getReactUiSnapshot, getReactUiSnapshot);
+  return (0, import_react34.useSyncExternalStore)(subscribeReactUi, getReactUiSnapshot, getReactUiSnapshot);
 }
 function useDomTarget(selector) {
-  const [target, setTarget2] = (0, import_react32.useState)(() => document.querySelector(selector));
-  (0, import_react32.useEffect)(() => {
+  const [target, setTarget2] = (0, import_react34.useState)(() => document.querySelector(selector));
+  (0, import_react34.useEffect)(() => {
     const el = document.querySelector(selector);
     if (el) {
       setTarget2(el);
@@ -80979,7 +81392,7 @@ function useDomTarget(selector) {
 }
 function useTextTarget(selector, value, active = true) {
   const target = useDomTarget(selector);
-  (0, import_react32.useLayoutEffect)(() => {
+  (0, import_react34.useLayoutEffect)(() => {
     if (!target) {
       return;
     }
@@ -80991,8 +81404,8 @@ function useTextTarget(selector, value, active = true) {
   }, [active, target, value]);
 }
 function HtmlFragment({ html, marker }) {
-  const ref = (0, import_react32.useRef)(null);
-  (0, import_react32.useLayoutEffect)(() => {
+  const ref = (0, import_react34.useRef)(null);
+  (0, import_react34.useLayoutEffect)(() => {
     const node = ref.current;
     if (!node) {
       return;
@@ -81004,7 +81417,7 @@ function HtmlFragment({ html, marker }) {
     node.dataset.fragmentInitialized = "true";
     node.dataset.fragmentHtml = html;
   }, [html]);
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { ref, "data-shell-fragment": marker });
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { ref, "data-shell-fragment": marker });
 }
 function syncSplashElement({ visible, mode, currentView }) {
   const splash2 = document.getElementById("splash");
@@ -81030,8 +81443,8 @@ function syncSplashElement({ visible, mode, currentView }) {
   splash2.style.pointerEvents = "";
 }
 function ShellPanel({ id: id3, visible, className, html }) {
-  const ref = (0, import_react32.useRef)(null);
-  (0, import_react32.useLayoutEffect)(() => {
+  const ref = (0, import_react34.useRef)(null);
+  (0, import_react34.useLayoutEffect)(() => {
     const node = ref.current;
     if (!node) {
       return;
@@ -81043,7 +81456,7 @@ function ShellPanel({ id: id3, visible, className, html }) {
     node.dataset.panelInitialized = "true";
     node.dataset.panelHtml = html;
   }, [html]);
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
     "section",
     {
       ref,
@@ -81060,13 +81473,13 @@ function LobbySeat({ player, layout: layout2, xPct, yPct, isSelf }) {
     transform: `translate(-50%, -50%) scale(calc(${layout2.scale} * var(--lobby-seat-scale, 1)))`
   };
   if (!player) {
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "seat", style, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "ava" }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "meta", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "n", children: "Open Slot" }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "s", children: "\uB2E4\uC74C \uCC38\uAC00\uC790 \uB300\uAE30 \uC911" })
+    return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "seat", style, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "ava" }),
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "meta", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "n", children: "Open Slot" }),
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "s", children: "\uB2E4\uC74C \uCC38\uAC00\uC790 \uB300\uAE30 \uC911" })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "ready bot", children: "Invite" })
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "ready bot", children: "Invite" })
     ] });
   }
   const isHost = Boolean(player.id) && Boolean(player.isHost);
@@ -81081,20 +81494,20 @@ function LobbySeat({ player, layout: layout2, xPct, yPct, isSelf }) {
   }
   const badgeText = isHost ? "Host" : isBot ? "BOT" : stateLabel;
   const badgeClass = isBot ? "ready bot" : normalizedState === "ready" ? "ready is-ready" : normalizedState === "bid" ? "ready is-bid" : normalizedState === "playing" ? "ready is-playing" : normalizedState === "finished" ? "ready is-finished" : "ready not-ready";
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: isSelf ? "seat seat-self me" : "seat", style, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: isSelf ? "seat seat-self me" : "seat", style, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
       "div",
       {
         className: `ava${player.avatarUrl ? " has-discord-avatar" : ""}`,
         style: player.avatarUrl ? void 0 : { background: avatarColor(player.id || player.name || "?") },
-        children: player.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("img", { src: player.avatarUrl, alt: player.name || "Player", loading: "lazy" }) : playerInitial(player.name)
+        children: player.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("img", { src: player.avatarUrl, alt: player.name || "Player", loading: "lazy" }) : playerInitial(player.name)
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "meta", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "n", children: player.name || "Player" }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "s", children: statusParts.join(" \xB7 ") })
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "meta", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "n", children: player.name || "Player" }),
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "s", children: statusParts.join(" \xB7 ") })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: badgeClass, children: badgeText })
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: badgeClass, children: badgeText })
   ] });
 }
 function buildLobbySeatModel(players, maxPlayers, viewerId) {
@@ -81179,10 +81592,10 @@ function LobbyPortals({ clientState, active }) {
   }
   const seats = buildLobbySeatModel(players, maxPlayers, viewerId);
   const roomCodeTarget = null;
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(import_jsx_runtime14.Fragment, { children: [
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(import_jsx_runtime15.Fragment, { children: [
     roomCodeTarget ? (0, import_react_dom2.createPortal)(`Room Code \xB7 ${String(session.sessionId || "-").toUpperCase()}`, roomCodeTarget) : null,
     playerListTarget ? (0, import_react_dom2.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(import_jsx_runtime14.Fragment, { children: seats.map((seat, index) => /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_jsx_runtime15.Fragment, { children: seats.map((seat, index) => /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
         LobbySeat,
         {
           player: seat.player,
@@ -81202,16 +81615,16 @@ function AppShell() {
   const currentView = selectCurrentView(clientState);
   const splashVisible = clientState.ui.splashVisible;
   const splashMode = clientState.ui.splashMode;
-  const fragments = (0, import_react32.useMemo)(() => getShellFragments(), []);
-  (0, import_react32.useEffect)(() => {
+  const fragments = (0, import_react34.useMemo)(() => getShellFragments(), []);
+  (0, import_react34.useEffect)(() => {
     installCardEffectBridge();
   }, []);
-  (0, import_react32.useEffect)(() => {
+  (0, import_react34.useEffect)(() => {
     const showHome = currentView === "home";
     document.body.classList.toggle("mode-home", showHome);
     document.body.classList.toggle("mode-session", !showHome);
   }, [currentView]);
-  (0, import_react32.useEffect)(() => {
+  (0, import_react34.useEffect)(() => {
     syncSplashElement({
       visible: splashVisible,
       mode: splashMode,
@@ -81219,12 +81632,12 @@ function AppShell() {
     });
   }, [currentView, splashMode, splashVisible]);
   const seatCount = clientState.session?.settings.maxPlayers ?? 6;
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { id: "react-shell", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(HtmlFragment, { marker: "splash", html: fragments.splashHtml }),
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(HtmlFragment, { marker: "toast", html: fragments.toastHtml }),
-    currentView === "game" ? /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(GameCanvas, { seatCount }) : null,
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("main", { className: "layout", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { id: "react-shell", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(HtmlFragment, { marker: "splash", html: fragments.splashHtml }),
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(HtmlFragment, { marker: "toast", html: fragments.toastHtml }),
+    currentView === "game" ? /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(GameCanvas, { seatCount }) : null,
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("main", { className: "layout", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
         ShellPanel,
         {
           id: "homePanel",
@@ -81233,7 +81646,7 @@ function AppShell() {
           html: fragments.homeInnerHtml
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
         ShellPanel,
         {
           id: "lobbyPanel",
@@ -81242,7 +81655,7 @@ function AppShell() {
           html: fragments.lobbyInnerHtml
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
         ShellPanel,
         {
           id: "gamePanel",
@@ -81252,17 +81665,17 @@ function AppShell() {
         }
       )
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(LobbyPortals, { clientState, active: currentView === "lobby" }),
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(HtmlFragment, { marker: "dialogs", html: fragments.dialogsHtml }),
-    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(CardEffectLayer, { boardSelector: "#gamePanel .table-wrap" })
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(LobbyPortals, { clientState, active: currentView === "lobby" }),
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(HtmlFragment, { marker: "dialogs", html: fragments.dialogsHtml }),
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(CardEffectLayer, { boardSelector: "#gamePanel .table-wrap" })
   ] });
 }
 function App() {
-  return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(ShellErrorBoundary, { children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(AppShell, {}) });
+  return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ShellErrorBoundary, { children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(AppShell, {}) });
 }
 
 // discord_activity_skullking/app/src/main.tsx
-var import_jsx_runtime15 = __toESM(require_jsx_runtime());
+var import_jsx_runtime16 = __toESM(require_jsx_runtime());
 var rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Missing #root container for Skull King React app");
@@ -81270,7 +81683,7 @@ if (!rootElement) {
 var root = (0, import_client.createRoot)(rootElement);
 installCardEffectBridge();
 (0, import_react_dom3.flushSync)(() => {
-  root.render(/* @__PURE__ */ (0, import_jsx_runtime15.jsx)(App, {}));
+  root.render(/* @__PURE__ */ (0, import_jsx_runtime16.jsx)(App, {}));
 });
 Promise.resolve().then(() => (init_legacy_app(), legacy_app_exports)).catch((error) => {
   console.error("[SkullKing][BootstrapImportFailed]", error);

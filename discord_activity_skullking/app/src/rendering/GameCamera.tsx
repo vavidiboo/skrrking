@@ -3,8 +3,28 @@ import { useThree } from "@react-three/fiber";
 import { PerspectiveCamera } from "three";
 
 interface GameCameraProps {
+  framing: GameCameraFraming;
+}
+
+export interface GameCameraFraming {
   /** Device aspect ratio (width / height). */
   aspect: number;
+  /** Camera field of view. */
+  fov: number;
+  /** Resting camera position. */
+  position: [number, number, number];
+  /** Stable look-at target for the table center. */
+  lookAt: [number, number, number];
+}
+
+export function resolveGameCameraFraming(aspect: number): GameCameraFraming {
+  const compact = aspect < 0.95;
+  return {
+    aspect,
+    fov: compact ? 48 : 42,
+    position: compact ? [0, 5.2, 5.6] : [0, 4.6, 5.0],
+    lookAt: [0, 0, 0],
+  };
 }
 
 /**
@@ -24,25 +44,22 @@ interface GameCameraProps {
  * We update the default Canvas camera in place rather than swapping the
  * camera object, which keeps R3F's resize/render loop ownership intact.
  */
-export function GameCamera({ aspect }: GameCameraProps) {
+export function GameCamera({ framing }: GameCameraProps) {
   const camera = useThree((state) => state.camera);
 
   useEffect(() => {
     if (!(camera instanceof PerspectiveCamera)) {
       return;
     }
-    const compact = aspect < 0.95;
-    const fov = compact ? 48 : 42;
-    const position: [number, number, number] = compact ? [0, 5.2, 5.6] : [0, 4.6, 5.0];
 
-    camera.position.set(position[0], position[1], position[2]);
-    camera.lookAt(0, 0, 0);
-    camera.fov = fov;
-    camera.aspect = aspect;
+    camera.position.set(framing.position[0], framing.position[1], framing.position[2]);
+    camera.lookAt(framing.lookAt[0], framing.lookAt[1], framing.lookAt[2]);
+    camera.fov = framing.fov;
+    camera.aspect = framing.aspect;
     camera.near = 0.1;
     camera.far = 50;
     camera.updateProjectionMatrix();
-  }, [aspect, camera]);
+  }, [camera, framing]);
 
   return null;
 }

@@ -2840,73 +2840,8 @@ def find_active_session_conflict(
             continue
         if not active_player_in_session(session, player_id=player_id, discord_user_id=discord_user_id):
             continue
-        if detach_player_from_lobby_session_locked(
-            session,
-            player_id=player_id,
-            discord_user_id=discord_user_id,
-        ):
-            continue
         return session_summary(session)
     return None
-
-
-def detach_player_from_lobby_session_locked(
-    session: Dict[str, Any],
-    *,
-    player_id: str = "",
-    discord_user_id: str = "",
-) -> bool:
-    normalize_session_status_fields(session)
-    if str(session.get("status", "")).lower() != "lobby":
-        return False
-
-    target = find_player_entry_in_session(
-        session,
-        player_id=player_id,
-        discord_user_id=discord_user_id,
-    )
-    if not is_player_entry_active(target):
-        return False
-
-    target_player_id = str((target or {}).get("id") or player_id or "").strip()
-    target_discord_user_id = str((target or {}).get("discord_user_id") or discord_user_id or "").strip()
-    target_name = str((target or {}).get("name") or target_player_id or "Unknown").strip()
-    players = session.get("players") if isinstance(session.get("players"), list) else []
-    remained = [
-        p
-        for p in players
-        if not (
-            isinstance(p, dict) and (
-                str(p.get("id", "")).strip() == target_player_id or
-                (
-                    target_discord_user_id and
-                    str(p.get("discord_user_id", "") or "").strip() == target_discord_user_id
-                )
-            )
-        )
-    ]
-
-    sid = str(session.get("session_id") or "").strip()
-    if not remained:
-        if sid:
-            cache_delete_session(sid)
-            delete_session_from_store(sid)
-            schedule_session_broadcast(sid, closed=True)
-    else:
-        session["players"] = remained
-        transfer_host_if_needed(session)
-        bump_session_updated_at(session)
-        add_log(session, f"{target_name} left the table.")
-        cache_set_session(session)
-        save_session_to_store(session)
-        if sid:
-            schedule_session_broadcast(sid, force=True)
-
-    clear_user_activity_presence_sync(
-        player_id=target_player_id,
-        discord_user_id=target_discord_user_id,
-    )
-    return True
 
 
 def player_last_activity_ts(player: Dict[str, Any], default_ts: int) -> int:

@@ -4,7 +4,8 @@
   "scripts": {
     "build": "esbuild discord_activity_skullking/app/src/main.tsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js",
     "build:watch": "esbuild discord_activity_skullking/app/src/main.tsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js --watch",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test:stage7": "esbuild tests/stage7_effects.test.ts --bundle --platform=node --format=cjs --outfile=.tmp/stage7_effects.test.cjs && node .tmp/stage7_effects.test.cjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.6.1",

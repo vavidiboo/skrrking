@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { EffectQualityTier } from "../types";
+import { EffectScene } from "./EffectScene";
 import { GameBoard } from "./GameBoard";
-import { GameCamera } from "./GameCamera";
+import { GameCamera, resolveGameCameraFraming } from "./GameCamera";
 import { SceneLighting } from "./SceneLighting";
 
 interface GameSceneProps {
@@ -18,20 +19,28 @@ interface GameSceneProps {
  *   - lighting lives in SceneLighting
  *   - board / anchors live in GameBoard
  *
+ * Stage 7 addition:
+ *   - EffectScene subscribes to effectBus and drives the world-side
+ *     reactions (camera shake, board ripple, world particles). It mounts
+ *     AFTER GameBoard so its effects render on top of the table surface
+ *     in declared order.
+ *
  * Future responsibilities (intentionally not added now):
  *   - translate game state into world state (card actors, seat occupancy)
- *   - host EffectScene (Stage 7)
  *   - host PostFx (Stage 7+)
  *
  * The scene reads no store state directly. Everything comes through props
  * so the rendering layer stays a pure presenter of the world.
  */
 export function GameScene({ qualityTier, aspect, seatCount }: GameSceneProps) {
+  const cameraFraming = useMemo(() => resolveGameCameraFraming(aspect), [aspect]);
+
   return (
     <>
-      <GameCamera aspect={aspect} />
+      <GameCamera framing={cameraFraming} />
       <SceneLighting qualityTier={qualityTier} />
       <GameBoard seatCount={seatCount} />
+      <EffectScene qualityTier={qualityTier} cameraFraming={cameraFraming} />
     </>
   );
 }
