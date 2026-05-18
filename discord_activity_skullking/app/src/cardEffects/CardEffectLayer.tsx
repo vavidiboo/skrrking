@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { CardEffectPayload, CardEffectPreset, ResultGlow } from "../types";
-import { buildCardEffectPayload, installCardEffectBridge, onCardEffect } from "./effectBus";
+import type { CardEffectEvent, CardEffectPayload, CardEffectPreset, EffectBusCancel, ResultGlow } from "../types";
+import { installCardEffectBridge, onEffectBusMessage } from "./effectBus";
 
 interface CardEffectLayerProps {
   boardSelector?: string;
@@ -116,30 +116,60 @@ function EffectEmblem({ preset }: { preset: CardEffectPreset }) {
   return null;
 }
 
-function normalizeEffect(detail: CardEffectPayload | Partial<CardEffectPayload> | null | undefined, boardSelector: string): CardEffectPayload {
-  if (detail && "preset" in detail && "id" in detail) {
-    return detail as CardEffectPayload;
-  }
-  return buildCardEffectPayload({ ...detail, boardSelector });
+function isCardEffectEventMessage(value: unknown): value is CardEffectEvent {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "payload" in value &&
+      "type" in value &&
+      "channels" in value &&
+      "createdAt" in value,
+  );
 }
 
 export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: CardEffectLayerProps) {
   const reduceMotion = useReducedMotion() ?? false;
-  const [queue, setQueue] = useState<CardEffectPayload[]>([]);
-  const [activeEffect, setActiveEffect] = useState<CardEffectPayload | null>(null);
+  const [queue, setQueue] = useState<CardEffectEvent[]>([]);
+  const [activeEffect, setActiveEffect] = useState<CardEffectEvent | null>(null);
   const [phase, setPhase] = useState<"idle" | "cast" | "resolve">("idle");
+  const [cancelMode, setCancelMode] = useState<EffectBusCancel["mode"] | null>(null);
+  const activeEffectRef = useRef<CardEffectEvent | null>(null);
+
+  useEffect(() => {
+    activeEffectRef.current = activeEffect;
+  }, [activeEffect]);
 
   useEffect(() => {
     installCardEffectBridge();
-    return onCardEffect((detail) => {
-      setQueue((current) => [...current, normalizeEffect(detail, boardSelector)]);
+    return onEffectBusMessage((message) => {
+      if (message.kind === "dispatch" && isCardEffectEventMessage(message.event)) {
+        const nextEvent: CardEffectEvent = message.event;
+        setQueue((current) => [...current, nextEvent]);
+        return;
+      }
+      if (message.kind !== "cancel") {
+        return;
+      }
+      setQueue((current) => current.filter((entry) => entry.id !== message.id));
+      if (activeEffectRef.current?.id !== message.id) {
+        return;
+      }
+      if (message.mode === "soft") {
+        setCancelMode("soft");
+        setPhase("resolve");
+        return;
+      }
+      setCancelMode(message.mode);
+      setActiveEffect(null);
+      setPhase("idle");
     });
-  }, [boardSelector]);
+  }, []);
 
   useEffect(() => {
     if (activeEffect || queue.length === 0) {
       return;
     }
+    setCancelMode(null);
     setActiveEffect(queue[0]);
     setQueue((current) => current.slice(1));
   }, [activeEffect, queue]);
@@ -147,26 +177,30 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
   useEffect(() => {
     if (!activeEffect) {
       setPhase("idle");
+      setCancelMode(null);
       return;
     }
 
-    const boardNode = document.querySelector(activeEffect.boardSelector || boardSelector);
-    const highlightNode = activeEffect.highlightSelector ? document.querySelector(activeEffect.highlightSelector) : null;
-    const highlightClass = resolveLiveHighlightClass(activeEffect.preset.resultGlow);
+    const effect = activeEffect.payload;
+    const boardNode = document.querySelector(effect.boardSelector || boardSelector);
+    const highlightNode = effect.highlightSelector ? document.querySelector(effect.highlightSelector) : null;
+    const highlightClass = resolveLiveHighlightClass(effect.preset.resultGlow);
+    const isSoftCancelled = cancelMode === "soft";
 
-    setPhase("cast");
-    if (boardNode && activeEffect.preset.shakeStrength !== "none") {
-      boardNode.classList.add("card-fx-board-shake", `card-fx-board-shake--${activeEffect.preset.shakeStrength}`);
+    setPhase(isSoftCancelled ? "resolve" : "cast");
+    if (boardNode && effect.preset.shakeStrength !== "none") {
+      boardNode.classList.add("card-fx-board-shake", `card-fx-board-shake--${effect.preset.shakeStrength}`);
     }
-    if (highlightNode && activeEffect.result === "win") {
+    if (highlightNode && effect.result === "win") {
       highlightNode.classList.add(highlightClass);
     }
 
-    const resolveDelayMs = Math.round((reduceMotion ? 0.22 : activeEffect.preset.resolveDelay) * 1000);
-    const totalDurationMs = Math.round((reduceMotion ? 0.56 : activeEffect.preset.totalDuration) * 1000);
+    const resolveDelayMs = isSoftCancelled ? 0 : Math.round((reduceMotion ? 0.22 : effect.preset.resolveDelay) * 1000);
+    const totalDurationMs = isSoftCancelled ? 180 : Math.round((reduceMotion ? 0.56 : effect.preset.totalDuration) * 1000);
     const resolveTimer = window.setTimeout(() => setPhase("resolve"), resolveDelayMs);
     const cleanupTimer = window.setTimeout(() => {
       setActiveEffect(null);
+      setCancelMode(null);
       setPhase("idle");
     }, totalDurationMs);
 
@@ -180,23 +214,24 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
         highlightNode.classList.remove("card-fx-live-highlight", "is-gold", "is-ember", "is-sea", "is-mist", "is-legendary", "is-shock");
       }
     };
-  }, [activeEffect, boardSelector, reduceMotion]);
+  }, [activeEffect, boardSelector, cancelMode, reduceMotion]);
 
-  const particles = useMemo<EffectParticle[]>(() => (activeEffect ? buildParticles(activeEffect) : []), [activeEffect]);
+  const activePayload = activeEffect?.payload ?? null;
+  const particles = useMemo<EffectParticle[]>(() => (activePayload ? buildParticles(activePayload) : []), [activePayload]);
   const castPath = useMemo<CastPath | null>(() => {
-    if (!activeEffect) {
+    if (!activePayload) {
       return null;
     }
-    const sourceRect = activeEffect.sourceRect;
-    const targetRect = activeEffect.targetRect;
+    const sourceRect = activePayload.sourceRect;
+    const targetRect = activePayload.targetRect;
     const midX = sourceRect.left + (targetRect.left - sourceRect.left) * 0.5;
-    const arcLift = Math.max(18, Number(activeEffect.preset.arcLift || 0));
+    const arcLift = Math.max(18, Number(activePayload.preset.arcLift || 0));
     const midY = Math.min(sourceRect.top, targetRect.top) - arcLift;
     return {
       x: [sourceRect.left, midX, targetRect.left],
       y: [sourceRect.top, midY, targetRect.top],
     };
-  }, [activeEffect]);
+  }, [activePayload]);
 
   if (typeof document === "undefined") {
     return null;
@@ -204,12 +239,12 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
 
   return createPortal(
     <AnimatePresence>
-      {activeEffect ? (
+      {activePayload ? (
         <div
           className={classNames(
             "card-fx-stage",
-            `theme-${activeEffect.preset.themeClass}`,
-            activeEffect.preset.dimBackground && "is-dimmed",
+            `theme-${activePayload.preset.themeClass}`,
+            activePayload.preset.dimBackground && "is-dimmed",
             phase === "resolve" && "is-resolving",
           )}
           aria-hidden="true"
@@ -217,13 +252,13 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
           <motion.div
             className="card-fx-dim"
             initial={{ opacity: 0 }}
-            animate={{ opacity: activeEffect.preset.dimBackground ? 0.76 : 0.22 }}
+            animate={{ opacity: activePayload.preset.dimBackground ? 0.76 : 0.22 }}
             exit={{ opacity: 0 }}
             transition={{ duration: reduceMotion ? 0.12 : 0.24 }}
           />
           <motion.div
             className="card-fx-flash"
-            style={{ "--card-fx-flash": activeEffect.preset.flashColor }}
+            style={{ "--card-fx-flash": activePayload.preset.flashColor }}
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 0.96, 0.08, 0] }}
             exit={{ opacity: 0 }}
@@ -231,42 +266,42 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
           />
           <div className="card-fx-vignette" />
           <motion.div
-            className={classNames("card-fx-card", `is-${activeEffect.preset.themeClass}`)}
-            style={{ "--card-fx-aspect": activeEffect.cardAspectRatio }}
+            className={classNames("card-fx-card", `is-${activePayload.preset.themeClass}`)}
+            style={{ "--card-fx-aspect": activePayload.cardAspectRatio }}
             initial={{
-              x: activeEffect.sourceRect.left,
-              y: activeEffect.sourceRect.top,
-              width: activeEffect.sourceRect.width,
-              height: activeEffect.sourceRect.height,
+              x: activePayload.sourceRect.left,
+              y: activePayload.sourceRect.top,
+              width: activePayload.sourceRect.width,
+              height: activePayload.sourceRect.height,
               scale: 1,
               rotate: 0,
               opacity: 1,
             }}
             animate={{
-              x: phase === "resolve" ? activeEffect.targetRect.left : castPath?.x || activeEffect.targetRect.left,
-              y: phase === "resolve" ? activeEffect.targetRect.top : castPath?.y || activeEffect.targetRect.top,
-              width: activeEffect.targetRect.width,
-              height: activeEffect.targetRect.height,
-              scale: phase === "resolve" ? activeEffect.preset.arrivalScale : activeEffect.preset.travelScale,
-              rotate: activeEffect.preset.rotation,
-              opacity: phase === "resolve" && activeEffect.effectType === "escape" ? 0.36 : 1,
+              x: phase === "resolve" ? activePayload.targetRect.left : castPath?.x || activePayload.targetRect.left,
+              y: phase === "resolve" ? activePayload.targetRect.top : castPath?.y || activePayload.targetRect.top,
+              width: activePayload.targetRect.width,
+              height: activePayload.targetRect.height,
+              scale: phase === "resolve" ? activePayload.preset.arrivalScale : activePayload.preset.travelScale,
+              rotate: activePayload.preset.rotation,
+              opacity: phase === "resolve" && activePayload.effectType === "escape" ? 0.36 : 1,
             }}
             exit={{ opacity: 0, scale: 0.94 }}
             transition={{
-              duration: reduceMotion ? 0.22 : activeEffect.preset.moveDuration,
-              ease: activeEffect.preset.moveEase,
+              duration: reduceMotion ? 0.22 : activePayload.preset.moveDuration,
+              ease: activePayload.preset.moveEase,
             }}
           >
             <div className="card-fx-aura">
-              <span className="card-fx-ring ring-1" style={{ "--ring-color": activeEffect.preset.auraColors[0] }} />
-              <span className="card-fx-ring ring-2" style={{ "--ring-color": activeEffect.preset.auraColors[1] }} />
-              <span className="card-fx-ring ring-3" style={{ "--ring-color": activeEffect.preset.auraColors[2] }} />
+              <span className="card-fx-ring ring-1" style={{ "--ring-color": activePayload.preset.auraColors[0] }} />
+              <span className="card-fx-ring ring-2" style={{ "--ring-color": activePayload.preset.auraColors[1] }} />
+              <span className="card-fx-ring ring-3" style={{ "--ring-color": activePayload.preset.auraColors[2] }} />
             </div>
-            <div className={classNames("card-fx-surface", `is-${activeEffect.preset.themeClass}`)}>
-              <CardClone effect={activeEffect} />
+            <div className={classNames("card-fx-surface", `is-${activePayload.preset.themeClass}`)}>
+              <CardClone effect={activePayload} />
             </div>
-            <EffectEmblem preset={activeEffect.preset} />
-            <div className={classNames("card-fx-particles", `is-${activeEffect.preset.particleStyle}`)}>
+            <EffectEmblem preset={activePayload.preset} />
+            <div className={classNames("card-fx-particles", `is-${activePayload.preset.particleStyle}`)}>
               {particles.map((particle) => (
                 <span
                   key={particle.id}
@@ -281,12 +316,12 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
               ))}
             </div>
           </motion.div>
-          {activeEffect.preset.impactRing ? (
+          {activePayload.preset.impactRing ? (
             <motion.div
-              className={classNames("card-fx-impact", `is-${activeEffect.preset.themeClass}`)}
+              className={classNames("card-fx-impact", `is-${activePayload.preset.themeClass}`)}
               style={{
-                left: activeEffect.targetRect.left + activeEffect.targetRect.width * 0.5,
-                top: activeEffect.targetRect.top + activeEffect.targetRect.height * 0.56,
+                left: activePayload.targetRect.left + activePayload.targetRect.width * 0.5,
+                top: activePayload.targetRect.top + activePayload.targetRect.height * 0.56,
               }}
               initial={{ opacity: 0, scale: 0.54 }}
               animate={{ opacity: phase === "resolve" ? 1 : 0, scale: phase === "resolve" ? 1.18 : 0.62 }}
@@ -294,19 +329,19 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: Ca
               transition={{ duration: reduceMotion ? 0.16 : 0.34, ease: [0.2, 0.9, 0.2, 1] }}
             />
           ) : null}
-          {activeEffect.result === "win" ? (
+          {activePayload.result === "win" ? (
             <motion.div
-              className={classNames("card-fx-result", `is-${activeEffect.preset.resultGlow}`)}
+              className={classNames("card-fx-result", `is-${activePayload.preset.resultGlow}`)}
               style={{
-                left: activeEffect.highlightRect.left,
-                top: activeEffect.highlightRect.top,
-                width: activeEffect.highlightRect.width,
-                height: activeEffect.highlightRect.height,
+                left: activePayload.highlightRect.left,
+                top: activePayload.highlightRect.top,
+                width: activePayload.highlightRect.width,
+                height: activePayload.highlightRect.height,
               }}
               initial={{ opacity: 0, scale: 0.84 }}
               animate={{
                 opacity: phase === "resolve" ? 1 : 0,
-                scale: phase === "resolve" ? clamp(activeEffect.preset.arrivalScale + 0.06, 1.02, 1.18) : 0.86,
+                scale: phase === "resolve" ? clamp(activePayload.preset.arrivalScale + 0.06, 1.02, 1.18) : 0.86,
               }}
               exit={{ opacity: 0 }}
               transition={{ duration: reduceMotion ? 0.18 : 0.42, ease: [0.18, 0.88, 0.24, 1] }}

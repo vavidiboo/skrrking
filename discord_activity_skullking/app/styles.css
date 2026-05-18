@@ -27,10 +27,10 @@
   --white: #f7faff;
   --muted: #c6d3ee;
   --line: rgba(255, 255, 255, 0.1);
-  --panel: linear-gradient(180deg, rgba(28, 46, 86, 0.86), rgba(15, 28, 54, 0.9));
-  --shadow: 0 18px 40px rgba(4, 9, 20, 0.35);
-  --glow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(212, 167, 60, 0.18);
-  --bg-overlay: linear-gradient(rgba(16, 28, 54, 0.34), rgba(9, 19, 38, 0.66));
+  --panel: linear-gradient(180deg, rgba(77, 49, 27, 0.88), rgba(28, 23, 33, 0.94));
+  --shadow: 0 22px 44px rgba(16, 8, 5, 0.42);
+  --glow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 30px rgba(212, 167, 60, 0.22);
+  --bg-overlay: linear-gradient(rgba(50, 24, 10, 0.34), rgba(14, 10, 15, 0.72));
   --field-bg: rgba(255, 255, 255, 0.06);
   --field-text: #ecf4ff;
   --chip-bg: rgba(255, 255, 255, 0.06);
@@ -56,7 +56,7 @@ body {
   color: var(--white);
   background:
     var(--bg-overlay),
-    url('/assets/bg_ship_2.jpg') center / cover no-repeat;
+    url('/assets/images/splash/bg_splash_ship_2.jpg') center / cover no-repeat;
 }
 
 #root,
@@ -97,8 +97,8 @@ body {
 
 .bg-mist {
   background:
-    radial-gradient(ellipse at 28% 66%, rgba(126, 199, 184, 0.11), transparent 30%),
-    radial-gradient(ellipse at 74% 54%, rgba(246, 231, 193, 0.09), transparent 26%);
+    radial-gradient(ellipse at 28% 66%, rgba(255, 177, 92, 0.13), transparent 30%),
+    radial-gradient(ellipse at 74% 54%, rgba(246, 231, 193, 0.11), transparent 26%);
 }
 
 .bg-harbor {
@@ -120,8 +120,8 @@ body {
   display: grid;
   place-items: center;
   background:
-    linear-gradient(rgba(12, 22, 52, 0.48), rgba(10, 19, 40, 0.78)),
-    url('/assets/bg_ship_3.jpg') center / cover no-repeat;
+    linear-gradient(rgba(52, 22, 7, 0.46), rgba(16, 10, 18, 0.8)),
+    var(--splash-bg-image, url('/assets/images/splash/bg_splash_ship_4.jpg')) center / cover no-repeat;
   transition: opacity 240ms ease, visibility 240ms ease;
   overflow: hidden;
 }
@@ -490,12 +490,12 @@ p {
 
 .modal-theme {
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(28, 46, 86, 0.96), rgba(15, 28, 54, 0.98));
+  background: linear-gradient(180deg, rgba(91, 58, 32, 0.96), rgba(30, 23, 30, 0.98));
   box-shadow: var(--shadow);
 }
 
 .panel {
-  background: linear-gradient(180deg, rgba(28, 46, 86, 0.84), rgba(15, 28, 54, 0.9));
+  background: linear-gradient(180deg, rgba(84, 53, 30, 0.84), rgba(30, 24, 34, 0.92));
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
@@ -524,15 +524,26 @@ p {
 }
 
 .btn.primary {
-  background: var(--theme-accent-grad);
+  background:
+    linear-gradient(180deg, rgba(255, 244, 205, 0.26), rgba(255, 244, 205, 0) 36%),
+    var(--theme-accent-grad-strong);
   color: var(--theme-accent-contrast);
-  box-shadow: 0 12px 24px rgba(186, 137, 25, 0.28);
+  border-color: rgba(116, 72, 20, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 220, 0.56),
+    inset 0 -5px 0 rgba(152, 97, 24, 0.28),
+    0 12px 24px rgba(186, 137, 25, 0.34);
 }
 
 .btn.secondary {
   color: var(--white);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(173, 113, 58, 0.32), rgba(86, 52, 33, 0.44)),
+    rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 227, 169, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 243, 223, 0.18),
+    inset 0 -4px 0 rgba(46, 24, 13, 0.22);
 }
 
 .btn:hover:not(:disabled) {
@@ -702,8 +713,8 @@ button:disabled {
   min-height: 100%;
   height: 100%;
   background:
-    linear-gradient(180deg, rgba(19, 32, 63, 0.82), rgba(15, 28, 54, 0.9)),
-    url('/assets/bg_ship_1.jpg') center / cover no-repeat;
+    linear-gradient(180deg, rgba(58, 29, 15, 0.64), rgba(16, 14, 24, 0.84)),
+    url('/assets/images/splash/bg_splash_ship_1.jpg') center / cover no-repeat;
 }
 
 .left-actions,
@@ -828,8 +839,8 @@ button:disabled {
   min-height: 100%;
   height: 100%;
   background:
-    linear-gradient(180deg, rgba(19, 32, 63, 0.82), rgba(15, 28, 54, 0.9)),
-    url('/assets/bg_ship_1.jpg') center / cover no-repeat;
+    linear-gradient(180deg, rgba(44, 24, 15, 0.72), rgba(16, 13, 23, 0.88)),
+    url('/assets/images/lobby/bg_lobby.jpg') center / cover no-repeat;
 }
 
 .room-setup-main {
@@ -1186,8 +1197,8 @@ button:disabled {
   grid-template-rows: auto minmax(0, 1fr) auto auto;
   align-items: stretch;
   background:
-    linear-gradient(rgba(14, 24, 60, 0.3), rgba(10, 19, 40, 0.48)),
-    url('/assets/bg_ship_1.jpg') center / cover no-repeat;
+    linear-gradient(rgba(18, 12, 10, 0.28), rgba(12, 10, 18, 0.58)),
+    url('/assets/images/game/bg_game_table_day.jpg') center / cover no-repeat;
   min-height: var(--viewport-height);
   height: var(--viewport-height);
   max-height: var(--viewport-height);
@@ -1200,8 +1211,11 @@ button:disabled {
   inset: 0;
   border-radius: 24px;
   background:
-    radial-gradient(circle at 12% 16%, rgba(126, 199, 184, 0.15), transparent 18%),
-    radial-gradient(circle at 82% 10%, rgba(109, 127, 219, 0.2), transparent 16%);
+    radial-gradient(circle at 12% 16%, rgba(255, 194, 107, 0.16), transparent 18%),
+    radial-gradient(circle at 82% 10%, rgba(163, 58, 30, 0.18), transparent 16%),
+    linear-gradient(rgba(73, 23, 15, 0.08), rgba(73, 23, 15, 0.08)),
+    url('/assets/images/game/bg_game_battle_alert.jpg') center / cover no-repeat;
+  opacity: 0.82;
   pointer-events: none;
 }
 
@@ -1660,6 +1674,14 @@ button:disabled {
     0 0 28px rgba(126, 199, 184, 0.18);
 }
 
+.seat.winner .avatar {
+  border-color: rgba(241, 207, 116, 0.98);
+  box-shadow:
+    0 0 0 7px rgba(241, 207, 116, 0.18),
+    0 12px 24px rgba(7, 9, 20, 0.56),
+    0 0 34px rgba(241, 207, 116, 0.22);
+}
+
 #gamePanel .player-ring .seat.me .avatar-fan,
 #gamePanel .player-ring .seat.me .avatar {
   display: none;
@@ -1810,6 +1832,43 @@ button:disabled {
   font-weight: 800;
 }
 
+.trick-card.pre-bid-inspect {
+  width: min(360px, 92vw);
+  min-height: 132px;
+  padding: 16px 18px;
+  border-style: solid;
+  border-color: rgba(241, 207, 116, 0.26);
+  background:
+    linear-gradient(180deg, rgba(18, 29, 57, 0.92), rgba(8, 16, 34, 0.96)),
+    radial-gradient(circle at top, rgba(241, 207, 116, 0.12), transparent 48%);
+  box-shadow:
+    0 18px 30px rgba(4, 9, 20, 0.28),
+    0 0 0 1px rgba(241, 207, 116, 0.08);
+  gap: 8px;
+}
+
+.trick-card-kicker {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: #f7dd98;
+}
+
+.trick-card-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(241, 207, 116, 0.12);
+  border: 1px solid rgba(241, 207, 116, 0.2);
+  color: #ffeec2;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .seat-name-hidden {
   display: none !important;
 }
@@ -1912,6 +1971,8 @@ button:disabled {
     0 22px 38px rgba(4, 9, 20, 0.32),
     0 0 0 4px rgba(241, 207, 116, 0.18),
     0 0 34px rgba(241, 207, 116, 0.2);
+  transform: translateY(-6px) scale(1.04);
+  filter: brightness(1.08) saturate(1.03);
 }
 
 .trick-zone-card-wrap.is-leading::before {
@@ -1924,6 +1985,21 @@ button:disabled {
   pointer-events: none;
   z-index: 0;
   animation: hs-leading-pulse 1.85s ease-in-out infinite;
+}
+
+.trick-zone-card.is-leading-special {
+  transform: translateY(-10px) scale(1.08);
+  filter: brightness(1.16) saturate(1.08);
+  box-shadow:
+    0 26px 44px rgba(4, 9, 20, 0.36),
+    0 0 0 5px rgba(255, 240, 184, 0.2),
+    0 0 48px rgba(255, 221, 132, 0.3);
+}
+
+.trick-zone-card-wrap.is-leading-special::before {
+  inset: -4px -16px 8px;
+  background: radial-gradient(circle at center, var(--fx-glow) 0%, rgba(255, 247, 220, 0.14) 42%, rgba(241, 207, 116, 0) 76%);
+  filter: blur(10px);
 }
 
 .trick-zone-card .seat-card-label {
@@ -2239,6 +2315,19 @@ button:disabled {
   font-size: 13px;
   font-weight: 900;
   color: #dff7f0;
+}
+
+.bid-dialog-meta {
+  margin-top: -4px;
+  margin-bottom: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(241, 207, 116, 0.18);
+  background: rgba(241, 207, 116, 0.08);
+  color: #f3e5b4;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .status-bar {
@@ -3543,6 +3632,14 @@ th {
   min-width: min(94vw, 1080px);
   padding: 24px;
   border-radius: 26px;
+  border: 1px solid rgba(255, 231, 186, 0.18);
+  background:
+    linear-gradient(180deg, rgba(87, 53, 32, 0.98), rgba(32, 23, 29, 0.985)),
+    radial-gradient(circle at top right, rgba(255, 214, 127, 0.14), transparent 34%);
+  box-shadow:
+    0 30px 58px rgba(12, 7, 6, 0.5),
+    inset 0 1px 0 rgba(255, 247, 230, 0.12);
+  backdrop-filter: blur(16px);
 }
 
 #joinPasswordDialog {
@@ -3592,10 +3689,12 @@ th {
   min-height: 260px;
   text-align: left;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 231, 186, 0.14);
   border-radius: 24px;
   padding: 18px;
-  background: linear-gradient(180deg, rgba(34, 55, 101, 0.95), rgba(19, 32, 63, 0.95));
+  background:
+    linear-gradient(180deg, rgba(116, 76, 45, 0.96), rgba(58, 36, 27, 0.98)),
+    radial-gradient(circle at top right, rgba(255, 216, 128, 0.08), transparent 36%);
   color: #eaf2ff;
   box-shadow: var(--shadow);
 }
@@ -3701,6 +3800,10 @@ th {
 
 #createRoomDialog .field.inline-check {
   min-height: 46px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 228, 177, 0.12);
+  background: linear-gradient(180deg, rgba(90, 58, 39, 0.84), rgba(49, 34, 33, 0.9));
 }
 
 #createRoomDialog .field.inline-check .option-toggle {
@@ -3717,7 +3820,7 @@ th {
 }
 
 #createRoomDialog .field.inline-check .option-toggle-text {
-  color: #dbe8ff;
+  color: #f5e8c5;
   font-size: 13px;
   font-weight: 800;
 }
@@ -3789,6 +3892,9 @@ th {
 #createRoomDialog input[type="text"],
 #createRoomDialog input[type="number"],
 #createRoomDialog input[type="password"] {
+  background: linear-gradient(180deg, rgba(110, 75, 48, 0.86), rgba(66, 46, 39, 0.92));
+  border: 1px solid rgba(255, 229, 180, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 245, 223, 0.08);
   transition:
     border-color 0.2s ease,
     box-shadow 0.24s ease,
@@ -3863,7 +3969,7 @@ th {
 }
 
 #createRoomDialog label {
-  color: #d5e5ff;
+  color: #f3e4bd;
   font-size: 13px;
   font-weight: 800;
 }
@@ -3916,8 +4022,8 @@ th {
 #findRoomDialog .btn.secondary,
 #joinPasswordDialog .btn.secondary {
   color: var(--white);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(111, 74, 48, 0.94), rgba(68, 44, 35, 0.96));
+  border: 1px solid rgba(255, 232, 189, 0.16);
 }
 
 #joinPasswordDialog .password-room-chip {
@@ -3925,8 +4031,8 @@ th {
   gap: 8px;
   padding: 12px 14px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 231, 186, 0.12);
+  background: linear-gradient(180deg, rgba(92, 61, 39, 0.88), rgba(48, 33, 31, 0.92));
 }
 
 #joinPasswordDialog .field {
@@ -3935,7 +4041,7 @@ th {
 }
 
 #joinPasswordDialog label {
-  color: #d5e5ff;
+  color: #f3e4bd;
   font-size: 13px;
   font-weight: 800;
 }
@@ -3943,8 +4049,8 @@ th {
 #joinPasswordDialog input[type="password"] {
   min-height: 46px;
   border-radius: 14px;
-  border: 1px solid rgba(173, 197, 245, 0.28);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 229, 180, 0.14);
+  background: linear-gradient(180deg, rgba(110, 75, 48, 0.86), rgba(66, 46, 39, 0.92));
   color: var(--field-text);
   padding: 0 14px;
 }
@@ -3981,10 +4087,10 @@ th {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 232, 189, 0.12);
   background:
-    linear-gradient(180deg, rgba(29, 48, 88, 0.96), rgba(15, 25, 47, 0.98)),
-    radial-gradient(circle at top right, rgba(241, 207, 116, 0.07), transparent 36%);
+    linear-gradient(180deg, rgba(104, 69, 42, 0.96), rgba(49, 33, 30, 0.98)),
+    radial-gradient(circle at top right, rgba(241, 207, 116, 0.1), transparent 36%);
   box-shadow: 0 18px 36px rgba(7, 12, 24, 0.22);
 }
 
@@ -4075,7 +4181,7 @@ th {
 #scoreDialog::backdrop,
 #finishDialog::backdrop,
 #logDialog::backdrop {
-  background: rgba(8, 10, 20, 0.62);
+  background: rgba(8, 10, 20, 0.78);
 }
 
 #tigressDialog {
@@ -4423,11 +4529,11 @@ th {
   width: min(1240px, calc(100vw - 56px));
   padding: 24px;
   background:
-    linear-gradient(180deg, rgba(33, 51, 92, 0.92), rgba(14, 25, 48, 0.96)),
-    radial-gradient(circle at top right, rgba(255, 224, 160, 0.08), transparent 32%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+    linear-gradient(180deg, rgba(111, 72, 37, 0.94), rgba(40, 23, 17, 0.98)),
+    radial-gradient(circle at top right, rgba(255, 224, 160, 0.12), transparent 34%);
+  border: 2px solid rgba(88, 52, 27, 0.54);
   border-radius: 34px;
-  box-shadow: 0 28px 56px rgba(4, 9, 20, 0.42);
+  box-shadow: 0 32px 64px rgba(16, 9, 6, 0.46);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   color: var(--white);
@@ -4440,8 +4546,8 @@ th {
   inset: 0;
   border-radius: inherit;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 24%),
-    linear-gradient(180deg, transparent 0%, rgba(7, 13, 26, 0.18) 100%);
+    linear-gradient(135deg, rgba(255, 249, 233, 0.12), transparent 24%),
+    linear-gradient(180deg, transparent 0%, rgba(48, 18, 8, 0.22) 100%);
   pointer-events: none;
 }
 
@@ -4462,10 +4568,10 @@ th {
   min-height: 100%;
   padding: 20px 22px;
   border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(93, 58, 29, 0.28);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
-    radial-gradient(circle at top left, rgba(255, 230, 172, 0.08), transparent 34%);
+    linear-gradient(180deg, rgba(255, 247, 230, 0.12), rgba(132, 77, 36, 0.08)),
+    radial-gradient(circle at top left, rgba(255, 230, 172, 0.14), transparent 34%);
 }
 
 #finishDialog .result-kicker {
@@ -4527,25 +4633,39 @@ th {
 #finishDialog .finish-hero-scene {
   min-height: 252px;
   border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(90, 57, 30, 0.34);
   background-position: center;
   background-size: cover;
+  background-color: rgba(45, 28, 22, 0.9);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 20px 34px rgba(5, 10, 21, 0.26);
+    inset 0 0 0 1px rgba(255, 250, 238, 0.06),
+    0 20px 34px rgba(20, 10, 7, 0.3);
 }
 
 #finishDialog[data-tone="victory"] .finish-hero-scene {
   background-image:
-    linear-gradient(180deg, rgba(241, 196, 91, 0.14), rgba(12, 20, 40, 0.1)),
-    url('/assets/result_win_scene.png');
+    linear-gradient(180deg, rgba(241, 196, 91, 0.14), rgba(53, 28, 12, 0.14)),
+    url('/assets/images/results/bg_result_victory.jpg');
+}
+
+#finishDialog[data-tone="firstPlace"] .finish-hero-scene {
+  background-image:
+    linear-gradient(180deg, rgba(255, 214, 119, 0.12), rgba(66, 37, 14, 0.1)),
+    url('/assets/images/results/bg_result_first_place.jpg');
 }
 
 #finishDialog[data-tone="defeat"] .finish-hero-scene {
   background-image:
     linear-gradient(180deg, rgba(90, 26, 34, 0.18), rgba(10, 17, 34, 0.34)),
-    url('/assets/result_lose_scene.png');
+    url('/assets/images/results/bg_result_defeat.jpg');
   filter: saturate(0.92);
+}
+
+#finishDialog[data-tone="forfeit"] .finish-hero-scene {
+  background-image:
+    linear-gradient(180deg, rgba(120, 40, 18, 0.22), rgba(20, 13, 17, 0.44)),
+    url('/assets/images/results/bg_result_surrender.jpg');
+  filter: saturate(0.88);
 }
 
 #finishDialog[data-tone="victory"] .result-kicker,
@@ -4554,10 +4674,22 @@ th {
   border-color: rgba(241, 207, 116, 0.24);
 }
 
+#finishDialog[data-tone="firstPlace"] .result-kicker,
+#finishDialog[data-tone="firstPlace"] .summary-banner {
+  background-color: rgba(255, 213, 98, 0.2);
+  border-color: rgba(255, 213, 98, 0.3);
+}
+
 #finishDialog[data-tone="defeat"] .result-kicker,
 #finishDialog[data-tone="defeat"] .summary-banner {
   background-color: rgba(216, 111, 133, 0.12);
   border-color: rgba(216, 111, 133, 0.2);
+}
+
+#finishDialog[data-tone="forfeit"] .result-kicker,
+#finishDialog[data-tone="forfeit"] .summary-banner {
+  background-color: rgba(176, 94, 64, 0.16);
+  border-color: rgba(176, 94, 64, 0.26);
 }
 
 #finishDialog .summary-banner {
@@ -4982,9 +5114,9 @@ th {
   backdrop-filter: none;
   --home-surface-alpha-top: 0.76;
   --home-surface-alpha-bottom: 0.82;
-  --home-surface-shadow: 0 10px 22px rgba(4, 9, 20, 0.18);
+  --home-surface-shadow: 0 14px 28px rgba(22, 10, 5, 0.24);
   --home-surface-blur: blur(24px);
-  --home-surface-border: 1px solid rgba(255, 255, 255, 0.1);
+  --home-surface-border: 1px solid rgba(255, 228, 171, 0.14);
 }
 
 #homePanel.lobby-home .screen {
@@ -4996,10 +5128,10 @@ th {
   border-radius: 0;
   background:
     radial-gradient(circle at 15% 18%, rgba(126, 199, 184, 0.18), transparent 18%),
-    radial-gradient(circle at 82% 12%, rgba(109, 127, 219, 0.24), transparent 16%),
+    radial-gradient(circle at 82% 12%, rgba(194, 97, 48, 0.24), transparent 16%),
     radial-gradient(circle at 50% 76%, rgba(212, 167, 60, 0.14), transparent 20%),
-    linear-gradient(180deg, rgba(33, 51, 95, 0.52) 0%, rgba(22, 36, 72, 0.56) 30%, rgba(16, 32, 61, 0.68) 58%, rgba(10, 26, 49, 0.76) 100%),
-    url('/assets/bg_ship_2.jpg') center / cover no-repeat;
+    linear-gradient(180deg, rgba(59, 30, 16, 0.48) 0%, rgba(33, 24, 32, 0.56) 30%, rgba(20, 18, 31, 0.7) 58%, rgba(13, 12, 24, 0.8) 100%),
+    url('/assets/images/splash/bg_splash_ship_5.jpg') center / cover no-repeat;
 }
 
 #homePanel.lobby-home .screen-label {
@@ -5825,9 +5957,10 @@ th {
   overflow: hidden;
   border-radius: 0;
   background:
-    radial-gradient(circle at 12% 16%, rgba(126, 199, 184, 0.12), transparent 18%),
-    radial-gradient(circle at 82% 10%, rgba(109, 127, 219, 0.18), transparent 16%),
-    linear-gradient(180deg, #21335f 0%, #17274b 32%, #10203d 62%, #0a1a31 100%);
+    radial-gradient(circle at 12% 16%, rgba(255, 210, 132, 0.12), transparent 18%),
+    radial-gradient(circle at 82% 10%, rgba(164, 75, 39, 0.18), transparent 16%),
+    linear-gradient(180deg, rgba(63, 33, 17, 0.44) 0%, rgba(28, 21, 25, 0.58) 34%, rgba(17, 16, 24, 0.74) 66%, rgba(13, 12, 20, 0.84) 100%),
+    url('/assets/images/lobby/bg_lobby.jpg') center / cover no-repeat;
 }
 
 #lobbyPanel .screen::before {
@@ -5836,11 +5969,11 @@ th {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 1px, transparent 1.5px),
-    radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.5px);
-  background-size: 250px 250px, 330px 330px;
-  background-position: 25px 30px, 160px 90px;
-  opacity: 0.18;
+    linear-gradient(180deg, rgba(82, 44, 22, 0.16), rgba(13, 10, 17, 0.2)),
+    radial-gradient(circle at 22% 18%, rgba(255, 233, 182, 0.16), transparent 18%),
+    radial-gradient(circle at 76% 24%, rgba(255, 181, 108, 0.12), transparent 14%),
+    radial-gradient(circle at 50% 100%, rgba(0, 0, 0, 0.3), transparent 42%);
+  opacity: 1;
 }
 
 #lobbyPanel .screen-label {
@@ -5871,8 +6004,10 @@ th {
   justify-content: space-between;
   gap: 12px;
   padding: 0 18px;
-  background: linear-gradient(180deg, rgba(29, 45, 86, 0.88), rgba(17, 31, 58, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(133, 93, 53, 0.94), rgba(59, 37, 26, 0.96)),
+    linear-gradient(90deg, rgba(255, 245, 219, 0.06), rgba(255, 245, 219, 0));
+  border: 1px solid rgba(255, 228, 171, 0.16);
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
 }
@@ -5962,8 +6097,8 @@ th {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(114, 77, 43, 0.86), rgba(70, 44, 30, 0.9));
+  border: 1px solid rgba(255, 227, 169, 0.16);
   box-shadow: var(--glow);
   font-weight: 800;
   min-width: 0;
@@ -5971,6 +6106,10 @@ th {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.seat.winner .seat-name {
+  color: #fff3c8;
 }
 
 #lobbyPanel .chip.ping-floating {
@@ -5998,8 +6137,10 @@ th {
   display: grid;
   place-items: center;
   flex: 0 0 44px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(198, 141, 79, 0.94), rgba(110, 69, 40, 0.96)),
+    rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 229, 180, 0.24);
   box-shadow: var(--glow);
 }
 
@@ -6020,6 +6161,8 @@ th {
   border-radius: 28px;
   min-height: 0;
   height: 100%;
+  background: linear-gradient(180deg, rgba(28, 18, 13, 0.24), rgba(28, 18, 13, 0.4));
+  box-shadow: inset 0 0 0 1px rgba(255, 235, 196, 0.05);
 }
 
 #lobbyPanel .table {
@@ -6059,8 +6202,10 @@ th {
   align-items: center;
   gap: 12px;
   padding: clamp(8px, 1.2vh, 12px);
-  background: linear-gradient(180deg, rgba(29, 45, 86, 0.92), rgba(18, 31, 58, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(126, 86, 46, 0.96), rgba(66, 42, 28, 0.98)),
+    linear-gradient(90deg, rgba(255, 240, 209, 0.08), rgba(255, 240, 209, 0));
+  border: 1px solid rgba(255, 224, 165, 0.14);
   box-shadow: var(--shadow);
 }
 
@@ -6216,19 +6361,27 @@ th {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  background:
+    linear-gradient(180deg, rgba(234, 214, 171, 0.88), rgba(177, 141, 91, 0.84)),
+    linear-gradient(180deg, rgba(255, 247, 228, 0.16), rgba(255, 247, 228, 0));
+  border: 2px solid rgba(104, 64, 34, 0.34);
+  box-shadow:
+    0 24px 44px rgba(20, 10, 7, 0.28),
+    inset 0 1px 0 rgba(255, 249, 236, 0.56);
 }
 
 #lobbyPanel .setup-panel h3 {
   margin: 0;
   font-size: 22px;
   font-weight: 900;
+  color: #4f2e19;
 }
 
 #lobbyPanel .section-title {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #c8d4ef;
+  color: #805229;
   font-weight: 800;
 }
 
@@ -6242,9 +6395,9 @@ th {
   min-height: 76px;
   padding: 12px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(24, 39, 74, 0.9), rgba(16, 28, 53, 0.94));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(111, 69, 36, 0.18);
+  background: linear-gradient(180deg, rgba(255, 247, 229, 0.74), rgba(222, 189, 137, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 #lobbyPanel .setting-copy {
@@ -6256,13 +6409,13 @@ th {
 #lobbyPanel .setting-label {
   font-size: 14px;
   font-weight: 900;
-  color: #f3f7ff;
+  color: #4c2a17;
 }
 
 #lobbyPanel .setting-help {
   font-size: 11px;
   line-height: 1.45;
-  color: #b7c8e8;
+  color: #785238;
 }
 
 #lobbyPanel .setting-pill {
@@ -6292,8 +6445,8 @@ th {
   flex-wrap: nowrap;
   flex-shrink: 0;
   gap: 6px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(121, 78, 46, 0.92), rgba(79, 48, 31, 0.94));
+  border: 1px solid rgba(255, 227, 169, 0.18);
   border-radius: 999px;
   padding: 0 8px;
   min-height: 38px;
@@ -6307,9 +6460,9 @@ th {
   flex: 0 0 32px;
   border-radius: 50%;
   padding: 0;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.08);
-  color: #f0f4ff;
+  border: 1px solid rgba(255, 233, 191, 0.22);
+  background: linear-gradient(180deg, rgba(242, 199, 124, 0.94), rgba(166, 110, 55, 0.96));
+  color: #40210f;
   font-size: 16px;
   font-weight: 900;
   line-height: 1;
@@ -6321,9 +6474,9 @@ th {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms ease;
+  transition: background 120ms ease, transform 120ms ease;
 }
-.stepper-btn:hover:not(:disabled) { background: rgba(255,255,255,0.18); }
+.stepper-btn:hover:not(:disabled) { background: linear-gradient(180deg, rgba(249, 211, 145, 0.96), rgba(177, 119, 62, 0.98)); transform: translateY(-1px); }
 .stepper-btn:disabled { opacity: 0.35; cursor: default; }
 #lobbyTurnTimerVal {
   min-width: 46px;
@@ -6332,7 +6485,7 @@ th {
   font-size: 13px;
   font-weight: 900;
   line-height: 1;
-  color: #f0f4ff;
+  color: #fff5dd;
 }
 
 /* toggle button (On/Off) */
@@ -6341,19 +6494,19 @@ th {
   min-width: 78px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
-  color: #b7c8e8;
+  border: 1px solid rgba(120, 74, 40, 0.26);
+  background: linear-gradient(180deg, rgba(115, 74, 45, 0.96), rgba(75, 48, 33, 0.98));
+  color: #f8ebc8;
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 216, 0.16);
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 .toggle-btn[data-on="true"] {
-  background: linear-gradient(180deg, rgba(74, 222, 128, 0.22), rgba(53, 153, 93, 0.28));
-  border-color: rgba(74, 222, 128, 0.55);
-  color: #d9ffe3;
+  background: linear-gradient(180deg, rgba(126, 215, 96, 0.88), rgba(72, 155, 63, 0.94));
+  border-color: rgba(212, 255, 194, 0.42);
+  color: #173317;
 }
 .toggle-btn:disabled { opacity: 0.38; cursor: default; }
 .toggle-btn:hover:not(:disabled) { transform: translateY(-1px); }
@@ -6908,6 +7061,234 @@ th {
   }
 }
 
+@media (max-width: 760px), (pointer: coarse) {
+  .btn,
+  button,
+  #homePanel.lobby-home .iconbtn,
+  #lobbyPanel .iconbtn,
+  .stepper-btn,
+  .toggle-btn,
+  .tab,
+  .bid-step-btn,
+  .bid-confirm-btn {
+    min-height: 50px;
+  }
+
+  #homePanel.lobby-home .chip,
+  #lobbyPanel .chip,
+  .mini-badge,
+  .seat-bid,
+  .seat-won,
+  .seat-turn-badge,
+  .trick-card-meta {
+    min-height: 36px;
+  }
+
+  #gamePanel .game-mini-topbar {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    min-height: 88px;
+    bottom: calc(var(--table-hand-h) + 10px);
+    padding: 12px 14px;
+    gap: 12px;
+    border-radius: 22px;
+  }
+
+  #gamePanel .game-mini-topbar .mini-avatar {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+  }
+
+  #gamePanel .game-mini-topbar .mini-content {
+    gap: 8px;
+  }
+
+  #gamePanel .game-mini-topbar .mini-name {
+    font-size: 16px;
+  }
+
+  .mini-stats {
+    gap: 6px;
+  }
+
+  .mini-badge {
+    min-height: 38px;
+    padding: 0 10px;
+    border-radius: 12px;
+  }
+
+  .interaction-hud {
+    width: calc(100vw - 16px);
+    bottom: calc(var(--table-hand-h) + 104px);
+    padding: 11px 12px;
+    border-radius: 18px;
+  }
+
+  .interaction-hud-title {
+    font-size: 14px;
+  }
+
+  .interaction-hud-body {
+    font-size: 11px;
+  }
+
+  .table-hand {
+    left: 6px;
+    right: 6px;
+  }
+
+  .hand.is-turn {
+    transform: translateY(-3px) scale(1.02);
+  }
+
+  .hand.is-waiting-turn {
+    transform: translateY(6px) scale(0.97);
+  }
+
+  .hand-card.playable:active,
+  .hand-card.playable:focus-visible {
+    transform: translate(calc(-50% + var(--x)), calc(var(--y) - 28px)) rotate(calc(var(--rot) * 0.58)) scale(1.12);
+    box-shadow:
+      0 36px 60px rgba(4, 9, 20, 0.48),
+      0 0 0 3px rgba(74, 222, 128, 0.48),
+      0 0 30px rgba(74, 222, 128, 0.3);
+  }
+
+  .trick-zone-cards {
+    gap: 8px;
+  }
+
+  .trick-zone-card {
+    width: 82px;
+    min-height: 128px;
+    padding: 9px 8px;
+  }
+
+  .trick-zone-status {
+    width: min(92vw, 360px);
+    padding: 10px 12px;
+  }
+
+  .turn-timer {
+    min-height: 34px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #lobbyPanel .topbar {
+    padding: 12px 14px;
+    height: auto;
+    min-height: 88px;
+    align-items: stretch;
+  }
+
+  #lobbyPanel .left,
+  #lobbyPanel .right {
+    width: 100%;
+    align-items: center;
+  }
+
+  #lobbyPanel .right {
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  #lobbyRoomCode,
+  #lobbyPlayersChip {
+    flex: 1 1 calc(50% - 4px);
+    max-width: none;
+  }
+
+  #lobbyPanel .iconbtn {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+  }
+
+  #lobbyPanel .room-main {
+    top: 110px;
+    bottom: 8px;
+    gap: 12px;
+    overflow: auto;
+    align-content: start;
+  }
+
+  #lobbyPanel .setup-panel {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  #lobbyPanel .seat {
+    width: clamp(160px, 46vw, 204px);
+    min-height: 78px;
+    padding: 10px;
+  }
+
+  #lobbyPanel .avatar,
+  #lobbyPanel .ava {
+    width: 44px;
+    height: 44px;
+  }
+
+  .modal {
+    top: auto;
+    bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+  }
+
+  #createRoomDialog,
+  #findRoomDialog,
+  #joinPasswordDialog,
+  #tigressDialog,
+  #bidDialog,
+  #eventDialog,
+  #scoreDialog,
+  #finishDialog,
+  #logDialog {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    max-height: calc(100dvh - 12px);
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+    border-radius: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  #gamePanel {
+    --table-h: clamp(214px, 42vh, 300px);
+    --table-min-h: clamp(186px, 30vh, 238px);
+    --table-hand-h: clamp(52px, 7.4vh, 74px);
+    --card-w: clamp(58px, 16vw, 68px);
+    --card-h: clamp(94px, 13.4vh, 116px);
+  }
+
+  #gamePanel .table-wrap {
+    border-radius: 34% / 24%;
+    box-shadow:
+      inset 0 0 0 8px rgba(212, 167, 60, 0.18),
+      inset 0 0 0 16px rgba(255, 255, 255, 0.04),
+      0 22px 44px rgba(3, 8, 18, 0.4);
+  }
+
+  #gamePanel .game-mini-topbar {
+    min-height: 84px;
+    padding: 10px 12px;
+  }
+
+  .interaction-hud {
+    bottom: calc(var(--table-hand-h) + 98px);
+  }
+
+  .trick-card.pre-bid-inspect {
+    min-height: 122px;
+    padding: 14px 14px;
+  }
+}
+
 /* Performance-lite mode: reduce expensive compositing effects */
 body.performance-lite .panel,
 body.performance-lite .topbar,
@@ -6991,6 +7372,7 @@ body.performance-lite #homePanel.lobby-home .tray-item {
   position: fixed;
   left: 0;
   top: 0;
+  aspect-ratio: var(--card-fx-aspect, 0.64);
   transform-origin: center center;
   will-change: transform, opacity, width, height;
   filter: drop-shadow(0 24px 40px rgba(4, 9, 20, 0.34));
@@ -7000,6 +7382,7 @@ body.performance-lite #homePanel.lobby-home .tray-item {
   position: relative;
   width: 100%;
   height: 100%;
+  aspect-ratio: inherit;
   border-radius: 18px;
   overflow: visible;
 }
@@ -7025,7 +7408,7 @@ body.performance-lite #homePanel.lobby-home .tray-item {
   min-width: 0 !important;
   min-height: 100% !important;
   height: 100% !important;
-  aspect-ratio: auto !important;
+  aspect-ratio: var(--card-fx-aspect, 0.64) !important;
   transform: none !important;
   transform-origin: center center !important;
   transform-style: flat !important;
@@ -7394,6 +7777,17 @@ body.performance-lite #homePanel.lobby-home .tray-item {
 .card-fx-stage.theme-mermaid .card-fx-vignette {
   background:
     radial-gradient(circle at 50% 50%, rgba(83, 185, 255, 0.08), transparent 28%, rgba(4, 8, 18, 0.22) 52%, rgba(4, 8, 18, 0.48) 100%);
+}
+
+.card-fx-stage.theme-kraken .card-fx-dim {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(56, 188, 176, 0.22), rgba(5, 10, 18, 0.8) 72%),
+    rgba(5, 9, 17, 0.72);
+}
+
+.card-fx-stage.theme-white-whale .card-fx-vignette {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(209, 241, 255, 0.12), transparent 26%, rgba(4, 8, 18, 0.2) 50%, rgba(4, 8, 18, 0.46) 100%);
 }
 
 .card-fx-stage.theme-escape .card-fx-card {

@@ -1,4 +1,14 @@
-import type { CardEffectPreset, CardEffectType, GameCardLike } from "../types";
+import type {
+  CardEffectDescriptor,
+  CardEffectEventType,
+  CardEffectPreset,
+  CardEffectType,
+  EffectChannel,
+  EffectPriority,
+  EffectQualityTier,
+  GameCardLike,
+  ShakeStrength,
+} from "../types";
 
 const BASE_PRESET: CardEffectPreset = {
   effectType: "default",
@@ -201,6 +211,99 @@ export const CARD_EFFECT_PRESETS: Record<CardEffectType, CardEffectPreset> = {
   },
 };
 
+const CARD_EFFECT_EVENT_TYPES: Record<CardEffectType, CardEffectEventType> = {
+  default: "card.play",
+  suit: "card.play",
+  pirate: "card.special.pirate",
+  mermaid: "card.special.mermaid",
+  escape: "card.special.escape",
+  tigress: "card.special.tigress",
+  kraken: "card.special.kraken",
+  white_whale: "card.special.whiteWhale",
+  skull_king: "card.special.skullKing",
+  special: "card.special.generic",
+};
+
+const CARD_EFFECT_PRIORITIES: Record<CardEffectType, EffectPriority> = {
+  default: "low",
+  suit: "low",
+  pirate: "normal",
+  mermaid: "normal",
+  escape: "low",
+  tigress: "normal",
+  kraken: "high",
+  white_whale: "high",
+  skull_king: "high",
+  special: "high",
+};
+
+const CARD_EFFECT_CHANNELS: Record<CardEffectType, EffectChannel[]> = {
+  default: ["card", "overlay"],
+  suit: ["card", "overlay"],
+  pirate: ["card", "particles", "overlay", "camera"],
+  mermaid: ["card", "particles", "overlay"],
+  escape: ["card", "particles", "overlay"],
+  tigress: ["card", "particles", "overlay", "camera"],
+  kraken: ["card", "particles", "overlay", "board", "camera"],
+  white_whale: ["card", "particles", "overlay", "board", "camera"],
+  skull_king: ["card", "particles", "overlay", "board", "camera"],
+  special: ["card", "particles", "overlay", "board"],
+};
+
+function reduceShake(shakeStrength: ShakeStrength, qualityTier: EffectQualityTier): ShakeStrength {
+  if (qualityTier === "ultra" || qualityTier === "high") {
+    return shakeStrength;
+  }
+  if (qualityTier === "medium") {
+    if (shakeStrength === "heavy") {
+      return "medium";
+    }
+    return shakeStrength;
+  }
+  if (qualityTier === "low") {
+    if (shakeStrength === "heavy") {
+      return "medium";
+    }
+    if (shakeStrength === "medium") {
+      return "light";
+    }
+    return shakeStrength;
+  }
+  if (shakeStrength === "none") {
+    return "none";
+  }
+  return "light";
+}
+
+function scaleParticles(count: number, qualityTier: EffectQualityTier): number {
+  if (qualityTier === "ultra" || qualityTier === "high") {
+    return count;
+  }
+  if (qualityTier === "medium") {
+    return Math.max(6, Math.round(count * 0.8));
+  }
+  if (qualityTier === "low") {
+    return Math.max(4, Math.round(count * 0.6));
+  }
+  return Math.max(3, Math.round(count * 0.35));
+}
+
+export function resolveEffectQualityTier(preferredQualityTier?: EffectQualityTier | null): EffectQualityTier {
+  if (preferredQualityTier) {
+    return preferredQualityTier;
+  }
+  if (typeof window === "undefined") {
+    return "high";
+  }
+  if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return "lite";
+  }
+  if (window.innerWidth <= 420) {
+    return "medium";
+  }
+  return "high";
+}
+
 export function inferEffectType(card: GameCardLike = {}): CardEffectType {
   const rawType = String(card.effectType || card.type || card.kind || "").trim().toLowerCase();
   const safeType = rawType.replace(/\s+/g, "_");
@@ -238,14 +341,54 @@ export function inferEffectType(card: GameCardLike = {}): CardEffectType {
   return safeType in CARD_EFFECT_PRESETS ? (safeType as CardEffectType) : "default";
 }
 
+function applyQualityTier(preset: CardEffectPreset, qualityTier: EffectQualityTier): CardEffectPreset {
+  if (qualityTier === "ultra" || qualityTier === "high") {
+    return preset;
+  }
+
+  const spreadMultiplier = qualityTier === "medium" ? 0.92 : qualityTier === "low" ? 0.84 : 0.72;
+  const arcMultiplier = qualityTier === "medium" ? 0.94 : qualityTier === "low" ? 0.84 : 0.7;
+  const dimBackground = qualityTier === "lite" ? false : preset.dimBackground;
+  const impactRing = qualityTier === "lite" ? false : preset.impactRing;
+
+  return {
+    ...preset,
+    particleCount: scaleParticles(preset.particleCount, qualityTier),
+    particleSpread: Math.max(72, Math.round(preset.particleSpread * spreadMultiplier)),
+    arcLift: Math.max(24, Math.round(preset.arcLift * arcMultiplier)),
+    dimBackground,
+    impactRing,
+    shakeStrength: reduceShake(preset.shakeStrength, qualityTier),
+  };
+}
+
 export function resolveCardEffectPreset(
   effectType?: CardEffectType | null,
   card: GameCardLike = {},
+  qualityTier?: EffectQualityTier | null,
 ): CardEffectPreset {
   const resolvedType = effectType || inferEffectType(card);
+  const tier = resolveEffectQualityTier(qualityTier);
   const preset = CARD_EFFECT_PRESETS[resolvedType] || CARD_EFFECT_PRESETS.default;
   return {
-    ...preset,
+    ...applyQualityTier(preset, tier),
     effectType: resolvedType,
+  };
+}
+
+export function resolveCardEffectDescriptor(
+  effectType?: CardEffectType | null,
+  card: GameCardLike = {},
+  qualityTier?: EffectQualityTier | null,
+): CardEffectDescriptor {
+  const resolvedType = effectType || inferEffectType(card);
+  const tier = resolveEffectQualityTier(qualityTier);
+  return {
+    effectType: resolvedType,
+    eventType: CARD_EFFECT_EVENT_TYPES[resolvedType] || "card.play",
+    priority: CARD_EFFECT_PRIORITIES[resolvedType] || "low",
+    channels: [...(CARD_EFFECT_CHANNELS[resolvedType] || CARD_EFFECT_CHANNELS.default)],
+    qualityTier: tier,
+    preset: resolveCardEffectPreset(resolvedType, card, tier),
   };
 }

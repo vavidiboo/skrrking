@@ -6062,12 +6062,14 @@ function renderTrickCenter(game, timeLeft) {
     ].join(":");
     if (!appState.uiCache.cinematicFxKeys?.[resolvedFxKey]) {
       appState.uiCache.cinematicFxKeys[resolvedFxKey] = true;
-      window.SkullKingFX?.playCardEffect?.({
+      window.SkullKingFX?.playCardEvent?.({
         card: resolvedWinnerCard,
         effectType: resolvedWinnerFxType,
         sourceElement: resolvedWinnerNode,
         targetElement: resolvedWinnerNode,
         highlightElement: resolvedWinnerNode,
+        sourcePlayerId: heldStatus?.winnerId || null,
+        targetPlayerId: heldStatus?.winnerId || null,
         boardSelector: "#gamePanel .table-wrap",
         result: "win",
       });
@@ -7070,10 +7072,11 @@ async function playFromHand(index, card) {
       animationKey,
       requestId,
     });
-    window.SkullKingFX?.playCardEffect?.({
+    window.SkullKingFX?.playCardEvent?.({
       card: previewCard,
       effectType: previewCard?.type || previewCard?.kind || "",
       sourceElement: handArea?.querySelector?.(`.hand-card[data-card-index="${index}"]`),
+      sourcePlayerId: viewerPlayerId,
       boardSelector: "#gamePanel .table-wrap",
       result: "pending",
     });

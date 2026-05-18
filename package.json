@@ -7,13 +7,16 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@react-three/fiber": "^9.6.1",
     "framer-motion": "^12.38.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.169.0",
     "esbuild": "^0.27.0",
     "typescript": "^5.9.3"
   }

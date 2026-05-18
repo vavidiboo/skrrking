@@ -41,7 +41,7 @@ SUIT_LABELS = {
 
 MAX_PLAYERS = 8
 MAX_ROUNDS = 10
-TURN_LIMIT_SECONDS = max(5, int(os.getenv("ACTIVITY_TURN_LIMIT_SECONDS", "20")))
+TURN_LIMIT_SECONDS = max(5, int(os.getenv("ACTIVITY_TURN_LIMIT_SECONDS", "15")))
 TIMEOUT_WATCH_INTERVAL_SECONDS = max(0.25, float(os.getenv("ACTIVITY_TIMEOUT_WATCH_INTERVAL_SECONDS", "0.5")))
 STATE_WAIT_POLL_INTERVAL_SECONDS = min(
     1.0,
@@ -1788,7 +1788,7 @@ class CreateSessionPayload(BaseModel):
     bonus_enabled: bool = False
     advanced_rules_enabled: bool = False
     room_password: Optional[str] = Field(default=None, max_length=32)
-    turn_limit_seconds: int = Field(default=20, ge=5, le=120)
+    turn_limit_seconds: int = Field(default=15, ge=5, le=120)
     allow_spectators: bool = False
 
 

@@ -3,10 +3,20 @@ import type { GameCardLike } from "./domain";
 export type EffectPriority = "critical" | "high" | "normal" | "low";
 export type EffectQualityTier = "ultra" | "high" | "medium" | "low" | "lite";
 export type EffectChannel = "board" | "camera" | "card" | "particles" | "overlay" | "score" | "audio";
-export type EffectEventType =
+
+export type CardEffectEventType =
   | "card.play"
-  | "card.special.skullKing"
+  | "card.special.generic"
+  | "card.special.pirate"
   | "card.special.mermaid"
+  | "card.special.escape"
+  | "card.special.tigress"
+  | "card.special.kraken"
+  | "card.special.whiteWhale"
+  | "card.special.skullKing";
+
+export type EffectEventType =
+  | CardEffectEventType
   | "trick.resolve"
   | "round.scoreDelta"
   | "match.finish"
@@ -29,6 +39,10 @@ export type ShakeStrength = "none" | "light" | "medium" | "heavy";
 export type ParticleStyle = "spark" | "slash" | "water" | "smoke" | "royal" | "impact" | "mist";
 export type ResultGlow = "gold" | "ember" | "sea" | "mist" | "legendary" | "shock";
 export type EffectEmblemType = "none" | "crown" | "wave" | "slash";
+
+export type EffectCancelMode = "none" | "soft" | "hard" | "replace";
+export type EffectThrottleMode = "none" | "dedupe" | "throttle";
+export type EffectFallbackMode = "render" | "lite" | "skip";
 
 export interface CardEffectPreset {
   themeClass: string;
@@ -60,7 +74,32 @@ export interface NormalizedRect {
   height: number;
 }
 
+export interface EffectEndpoint {
+  playerId?: string | null;
+  playerName?: string | null;
+  element?: Element | null;
+  selector?: string | null;
+  rect?: NormalizedRect | null;
+}
+
+export interface EffectCancelPolicy {
+  mode: EffectCancelMode;
+  replaceKey?: string | null;
+}
+
+export interface EffectThrottlePolicy {
+  mode: EffectThrottleMode;
+  dedupeKey?: string | null;
+  windowMs: number;
+}
+
+export interface EffectFallbackPolicy {
+  mode: EffectFallbackMode;
+  reason?: string | null;
+}
+
 export interface BuildCardEffectPayloadOptions {
+  id?: string;
   card?: GameCardLike;
   effectType?: CardEffectType;
   sourceElement?: Element | null;
@@ -76,6 +115,21 @@ export interface BuildCardEffectPayloadOptions {
   boardElement?: Element | null;
   boardRect?: NormalizedRect | null;
   result?: "pending" | "win" | "lose";
+}
+
+export interface BuildCardEffectEventOptions extends BuildCardEffectPayloadOptions {
+  type?: CardEffectEventType | string | null;
+  priority?: EffectPriority;
+  channels?: EffectChannel[];
+  qualityTier?: EffectQualityTier;
+  createdAt?: number;
+  sourcePlayerId?: string | null;
+  sourcePlayerName?: string | null;
+  targetPlayerId?: string | null;
+  targetPlayerName?: string | null;
+  cancel?: Partial<EffectCancelPolicy> | null;
+  throttle?: Partial<EffectThrottlePolicy> | null;
+  fallback?: Partial<EffectFallbackPolicy> | null;
 }
 
 export interface CardEffectPayload {
@@ -96,23 +150,67 @@ export interface CardEffectPayload {
   highlightSelector: string | null;
 }
 
-export interface EffectEvent {
+export interface EffectEventBase<TType extends EffectEventType = EffectEventType, TPayload = Record<string, unknown>> {
   id: string;
-  type: EffectEventType;
+  type: TType;
+  effectType: CardEffectType;
   priority: EffectPriority;
   channels: EffectChannel[];
-  qualityTier?: EffectQualityTier;
+  qualityTier: EffectQualityTier;
+  source?: EffectEndpoint;
+  target?: EffectEndpoint;
   card?: GameCardLike;
-  sourcePlayerId?: string;
-  targetPlayerId?: string;
-  payload?: Record<string, unknown>;
+  payload: TPayload;
   createdAt: number;
+  cancel: EffectCancelPolicy;
+  throttle: EffectThrottlePolicy;
+  fallback: EffectFallbackPolicy;
+}
+
+export interface CardEffectEvent extends EffectEventBase<CardEffectEventType, CardEffectPayload> {
+  card: GameCardLike;
+  payload: CardEffectPayload;
+}
+
+export interface GenericEffectEvent extends EffectEventBase<Exclude<EffectEventType, CardEffectEventType>> {
+  payload: Record<string, unknown>;
+}
+
+export type EffectEvent = CardEffectEvent | GenericEffectEvent;
+
+export interface EffectBusDispatch {
+  kind: "dispatch";
+  event: EffectEvent;
+}
+
+export interface EffectBusCancel {
+  kind: "cancel";
+  id: string;
+  mode: EffectCancelMode;
+  reason: string;
+  createdAt: number;
+  replaceById?: string | null;
+}
+
+export type EffectBusMessage = EffectBusDispatch | EffectBusCancel;
+
+export interface CardEffectDescriptor {
+  effectType: CardEffectType;
+  eventType: CardEffectEventType;
+  priority: EffectPriority;
+  channels: EffectChannel[];
+  qualityTier: EffectQualityTier;
+  preset: CardEffectPreset;
 }
 
 export interface SkullKingFXBridge {
-  emit: (detail: CardEffectPayload | BuildCardEffectPayloadOptions) => CardEffectPayload | null;
-  playCardEffect: (detail: CardEffectPayload | BuildCardEffectPayloadOptions) => CardEffectPayload | null;
+  emit: (detail?: CardEffectEvent | BuildCardEffectEventOptions | null) => CardEffectPayload | null;
+  emitEvent: (detail?: EffectEvent | BuildCardEffectEventOptions | null) => EffectEvent | null;
+  playCardEffect: (detail?: CardEffectEvent | BuildCardEffectEventOptions | null) => CardEffectPayload | null;
+  playCardEvent: (detail?: CardEffectEvent | BuildCardEffectEventOptions | null) => CardEffectEvent | null;
   buildCardEffectPayload: (detail?: BuildCardEffectPayloadOptions) => CardEffectPayload;
+  buildCardEffectEvent: (detail?: BuildCardEffectEventOptions) => CardEffectEvent;
   inferEffectType: (card?: GameCardLike) => CardEffectType;
-  resolveCardEffectPreset: (effectType?: CardEffectType, card?: GameCardLike) => CardEffectPreset;
+  resolveCardEffectPreset: (effectType?: CardEffectType, card?: GameCardLike, qualityTier?: EffectQualityTier) => CardEffectPreset;
+  resolveCardEffectDescriptor: (effectType?: CardEffectType, card?: GameCardLike, qualityTier?: EffectQualityTier) => CardEffectDescriptor;
 }

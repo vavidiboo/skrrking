@@ -6,6 +6,7 @@ import { getReactUiSnapshot, subscribeReactUi } from "./legacyBridge";
 import { selectCurrentView, selectLobbyPlayers } from "./selectors/clientState";
 import { CardEffectLayer } from "./cardEffects/CardEffectLayer";
 import { installCardEffectBridge } from "./cardEffects/effectBus";
+import { GameCanvas } from "./rendering";
 import type { ClientPlayerState, ClientStoreSnapshot, CurrentView, ReactUiState } from "./types";
 
 interface ShellErrorBoundaryState {
@@ -502,10 +503,21 @@ function AppShell() {
     });
   }, [currentView, splashMode, splashVisible]);
 
+  // seatCount: pulled from session settings while available so the board
+  // anchors match the active match. Falls back to 6 (default lobby capacity).
+  const seatCount = clientState.session?.settings.maxPlayers ?? 6;
+
   return (
     <div id="react-shell">
       <HtmlFragment marker="splash" html={fragments.splashHtml} />
       <HtmlFragment marker="toast" html={fragments.toastHtml} />
+      {/*
+        GameCanvas mounts only on the game view. It paints behind the legacy
+        gamePanel (z-index policy in src/rendering/zLayers.ts), giving the
+        battle board a real R3F scene boundary without disturbing the
+        existing DOM HUD that legacy-app.js still owns.
+      */}
+      {currentView === "game" ? <GameCanvas seatCount={seatCount} /> : null}
       <main className="layout">
         <ShellPanel
           id="homePanel"
