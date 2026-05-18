@@ -1,15 +1,21 @@
-import type { ReactUiState } from "./types";
+import { buildClientStoreSnapshot } from "./adapters/sessionSnapshot";
+import type { ReactUiBridgeState, ReactUiState } from "./types";
 
 type ReactUiListener = () => void;
-type ReactUiPatch = Partial<ReactUiState>;
+type ReactUiPatch = Partial<ReactUiBridgeState>;
 
-let reactUiState: ReactUiState = {
+const initialBridgeState: ReactUiBridgeState = {
   currentView: "home",
   gameState: null,
   viewerId: "",
   lobbyModel: null,
   splashVisible: true,
   splashMode: "boot",
+};
+
+let reactUiState: ReactUiState = {
+  ...initialBridgeState,
+  clientState: buildClientStoreSnapshot(initialBridgeState),
 };
 
 const listeners = new Set<ReactUiListener>();
@@ -36,9 +42,14 @@ export function getReactUiSnapshot(): ReactUiState {
 }
 
 export function setReactUiState(patch: ReactUiPatch | null | undefined): void {
-  const nextState: ReactUiState = {
-    ...reactUiState,
+  const { clientState: _clientState, ...prevBridgeState } = reactUiState;
+  const nextBridgeState: ReactUiBridgeState = {
+    ...prevBridgeState,
     ...(patch && typeof patch === "object" ? patch : {}),
+  };
+  const nextState: ReactUiState = {
+    ...nextBridgeState,
+    clientState: buildClientStoreSnapshot(nextBridgeState),
   };
 
   const changed = Object.keys(nextState).some((key) => {

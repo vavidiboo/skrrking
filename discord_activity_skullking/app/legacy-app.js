@@ -305,6 +305,8 @@ function ensureViewPanels() {
 }
 
 const appState = {
+  // Backend-authoritative/session-sync state. These fields mirror server
+  // snapshots or transport metadata and remain the runtime source of truth.
   apiBase: readApiBase(),
   sessionId: null,
   playerId: readPlayerId(),
@@ -331,6 +333,8 @@ const appState = {
   latestAppliedUpdatedAt: 0,
   latestServerTimeMs: 0,
   serverClockOffsetMs: 0,
+  // Local UI/runtime state. These values are derived, optimistic, or DOM-facing
+  // and should not be treated as gameplay authority.
   selectedCardIndex: null,
   pendingAction: {
     kind: PENDING_ACTION_KIND.NONE,
@@ -1667,6 +1671,22 @@ function ingestServerState(state, options = {}) {
     currentView: deriveViewFromState(state),
     gameState: reactState,
     viewerId: reactViewerId,
+    interactionState: {
+      selectedCardIndex: appState.selectedCardIndex,
+      pendingActionKind: appState.pendingAction?.kind || PENDING_ACTION_KIND.NONE,
+      pendingActionKey: appState.pendingAction?.key || "",
+      pendingActionActive: Boolean(appState.pendingAction?.active),
+    },
+    transportState: {
+      protocolVersion: appState.transport.protocolVersion,
+      snapshotRevision: appState.transport.snapshotRevision,
+      payloadMode: appState.statePayloadMode,
+      websocketActive: Boolean(appState.wsActive),
+      pollingActive: Boolean(appState.pollingActive),
+      lastSuccessfulSyncAt: Number(appState.lastSuccessfulSyncAt || 0),
+      lastServerUpdatedAt: Number(appState.lastServerUpdatedAt || 0),
+      sessionConnectionState: resolveCurrentPlayer(state)?.connection_state || CONNECTION_STATUS.CONNECTED,
+    },
   });
   if (shouldReleasePlaySubmit) {
     clearPlaySubmitSyncTimer();
@@ -5538,7 +5558,8 @@ function resolveCurrentPlayer(game) {
 
 // NOTE: renderLobbySeats는 React 마이그레이션(2026-05) 이후 제거됨.
 // 로비 좌석 렌더링은 App.jsx의 LobbyPortals(React 포탈)이 담당한다.
-// setReactUiState({ gameState }) 호출 시 자동으로 React가 재렌더한다.
+// legacyBridge는 raw snapshot을 React에 넘기는 임시 계층이며, 동시에
+// normalized client-state/selectors 계약도 함께 유지한다.
 
 function maybeAutoStartNextRound(game) {
   const liveGame = game && typeof game === "object" ? game : appState.game;
@@ -8069,6 +8090,22 @@ function onLeaveToHome() {
     gameState: null,
     viewerId: "",
     lobbyModel: null,
+    interactionState: {
+      selectedCardIndex: null,
+      pendingActionKind: PENDING_ACTION_KIND.NONE,
+      pendingActionKey: "",
+      pendingActionActive: false,
+    },
+    transportState: {
+      protocolVersion: "",
+      snapshotRevision: 0,
+      payloadMode: "full",
+      websocketActive: false,
+      pollingActive: false,
+      lastSuccessfulSyncAt: 0,
+      lastServerUpdatedAt: 0,
+      sessionConnectionState: CONNECTION_STATUS.CONNECTED,
+    },
   });
   appState.sessionId = null;
   appState.lastServerUpdatedAt = 0;

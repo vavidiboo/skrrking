@@ -3,9 +3,10 @@ import type { ErrorInfo, PropsWithChildren } from "react";
 import { createPortal } from "react-dom";
 import shellHtml from "./shell.html";
 import { getReactUiSnapshot, subscribeReactUi } from "./legacyBridge";
+import { selectCurrentView, selectLobbyPlayers } from "./selectors/clientState";
 import { CardEffectLayer } from "./cardEffects/CardEffectLayer";
 import { installCardEffectBridge } from "./cardEffects/effectBus";
-import type { ConnectionState, CurrentView, LobbyPlayerState, ReactUiState, SessionPlayerSnapshot, SessionSnapshotResponse } from "./types";
+import type { ClientPlayerState, ClientStoreSnapshot, CurrentView, ReactUiState } from "./types";
 
 interface ShellErrorBoundaryState {
   hasError: boolean;
@@ -49,18 +50,8 @@ interface LobbySeatLayout {
   scale: number;
 }
 
-interface LobbySeatPlayer extends SessionPlayerSnapshot {
-  id?: string;
-  name?: string;
-  hostId?: string;
-  connection_state?: ConnectionState | string;
-  state?: LobbyPlayerState | string;
-  avatar_url?: string | null;
-  afk?: boolean;
-}
-
 interface LobbySeatModel {
-  player: LobbySeatPlayer | null;
+  player: ClientPlayerState | null;
   layout: LobbySeatLayout;
   xPct: number;
   yPct: number;
@@ -70,8 +61,7 @@ interface LobbySeatModel {
 interface LobbySeatProps extends LobbySeatModel {}
 
 interface LobbyPortalsProps {
-  gameState: SessionSnapshotResponse | null;
-  viewerId: string;
+  clientState: ClientStoreSnapshot;
   active: boolean;
 }
 
@@ -153,14 +143,6 @@ function getShellFragments(): ShellFragments {
       .join("\n"),
   };
   return cachedShellFragments;
-}
-
-function normalizeLobbyPlayerState(state: unknown): LobbyPlayerState {
-  const safe = String(state || "").trim().toLowerCase();
-  if (["not_ready", "ready", "bid", "playing", "finished"].includes(safe)) {
-    return safe as LobbyPlayerState;
-  }
-  return "not_ready";
 }
 
 function connectionStateLabel(state: unknown): string {
@@ -324,10 +306,10 @@ function LobbySeat({ player, layout, xPct, yPct, isSelf }: LobbySeatProps) {
     );
   }
 
-  const isHost = Boolean(player.id) && String(player.id) === String(player.hostId || "");
+  const isHost = Boolean(player.id) && Boolean(player.isHost);
   const isBot = String(player.id || "").startsWith("bot-") || /bot/i.test(String(player.name || ""));
-  const normalizedState = normalizeLobbyPlayerState(player.state);
-  const connState = connectionStateLabel(player.connection_state);
+  const normalizedState = player.state;
+  const connState = connectionStateLabel(player.connectionState);
   const stateLabel =
     normalizedState === "ready"
       ? "Ready"
@@ -360,11 +342,11 @@ function LobbySeat({ player, layout, xPct, yPct, isSelf }: LobbySeatProps) {
   return (
     <div className={isSelf ? "seat seat-self me" : "seat"} style={style}>
       <div
-        className={`ava${player.avatar_url ? " has-discord-avatar" : ""}`}
-        style={player.avatar_url ? undefined : { background: avatarColor(player.id || player.name || "?") }}
+        className={`ava${player.avatarUrl ? " has-discord-avatar" : ""}`}
+        style={player.avatarUrl ? undefined : { background: avatarColor(player.id || player.name || "?") }}
       >
-        {player.avatar_url ? (
-          <img src={player.avatar_url} alt={player.name || "Player"} loading="lazy" />
+        {player.avatarUrl ? (
+          <img src={player.avatarUrl} alt={player.name || "Player"} loading="lazy" />
         ) : (
           playerInitial(player.name)
         )}
@@ -378,14 +360,12 @@ function LobbySeat({ player, layout, xPct, yPct, isSelf }: LobbySeatProps) {
   );
 }
 
-function buildLobbySeatModel(gameState: SessionSnapshotResponse | null | undefined, viewerId: string): LobbySeatModel[] {
-  const players = (Array.isArray(gameState?.players) ? gameState.players : []) as LobbySeatPlayer[];
-  const maxPlayers = Math.max(2, Math.min(8, Number(gameState?.settings?.max_players || gameState?.settings?.maxPlayers || 6)));
+function buildLobbySeatModel(players: ClientPlayerState[], maxPlayers: number, viewerId: string): LobbySeatModel[] {
   const mePlayer =
     players.find((player) => String(player?.id || "") === String(viewerId || "")) ||
     (players.length === 1 ? players[0] : null);
   const others = players.filter((player) => String(player?.id || "") !== String(viewerId || ""));
-  const slots: Array<LobbySeatPlayer | null> = mePlayer ? [mePlayer, ...others] : [...players];
+  const slots: Array<ClientPlayerState | null> = mePlayer ? [mePlayer, ...others] : [...players];
   const hasOpenSlot = slots.length < maxPlayers;
   if (hasOpenSlot) {
     slots.push(null);
@@ -435,12 +415,7 @@ function buildLobbySeatModel(gameState: SessionSnapshotResponse | null | undefin
   };
 
   return Array.from({ length: visibleSeatCount }, (_, index) => {
-    const player = slots[index]
-      ? {
-          ...slots[index],
-          hostId: gameState?.host_id || "",
-        }
-      : null;
+    const player = slots[index] ? { ...slots[index] } : null;
     return {
       player,
       layout,
@@ -450,36 +425,39 @@ function buildLobbySeatModel(gameState: SessionSnapshotResponse | null | undefin
   });
 }
 
-function LobbyPortals({ gameState, viewerId, active }: LobbyPortalsProps) {
+function LobbyPortals({ clientState, active }: LobbyPortalsProps) {
   const playerListTarget = useDomTarget("#playerList");
-  const maxPlayers = Number(gameState?.settings?.max_players || gameState?.settings?.maxPlayers || 6);
+  const session = clientState.session;
+  const viewerId = clientState.interaction.viewerId;
+  const players = selectLobbyPlayers(clientState);
+  const maxPlayers = session?.settings.maxPlayers || 6;
 
   useTextTarget(
     "#lobbyRoomCode",
-    `Room Code · ${String(gameState?.session_id || "-").toUpperCase()}`,
-    active && Boolean(gameState),
+    `Room Code · ${String(session?.sessionId || "-").toUpperCase()}`,
+    active && Boolean(session),
   );
   useTextTarget(
     "#lobbyPlayersChip",
-    `${(gameState?.players || []).length}/${maxPlayers} Players`,
-    active && Boolean(gameState),
+    `${players.length}/${maxPlayers} Players`,
+    active && Boolean(session),
   );
   useTextTarget(
     "#lobbyRoomCode",
-    `Room Code - ${String(gameState?.session_id || "-").toUpperCase()}`,
-    active && Boolean(gameState),
+    `Room Code - ${String(session?.sessionId || "-").toUpperCase()}`,
+    active && Boolean(session),
   );
 
-  if (!active || !gameState) {
+  if (!active || !session) {
     return null;
   }
 
-  const seats = buildLobbySeatModel(gameState, viewerId);
+  const seats = buildLobbySeatModel(players, maxPlayers, viewerId);
   const roomCodeTarget = null;
 
   return (
     <>
-      {roomCodeTarget ? createPortal(`Room Code · ${String(gameState.session_id || "-").toUpperCase()}`, roomCodeTarget) : null}
+      {roomCodeTarget ? createPortal(`Room Code · ${String(session.sessionId || "-").toUpperCase()}`, roomCodeTarget) : null}
       {playerListTarget ? createPortal(
         <>
           {seats.map((seat, index) => (
@@ -500,7 +478,10 @@ function LobbyPortals({ gameState, viewerId, active }: LobbyPortalsProps) {
 }
 
 function AppShell() {
-  const { currentView, gameState, viewerId, splashVisible, splashMode } = useReactUiState();
+  const { clientState } = useReactUiState();
+  const currentView = selectCurrentView(clientState);
+  const splashVisible = clientState.ui.splashVisible;
+  const splashMode = clientState.ui.splashMode;
   const fragments = useMemo(() => getShellFragments(), []);
 
   useEffect(() => {
@@ -545,7 +526,7 @@ function AppShell() {
           html={fragments.gameInnerHtml}
         />
       </main>
-      <LobbyPortals gameState={gameState} viewerId={viewerId} active={currentView === "lobby"} />
+      <LobbyPortals clientState={clientState} active={currentView === "lobby"} />
       <HtmlFragment marker="dialogs" html={fragments.dialogsHtml} />
       <CardEffectLayer boardSelector="#gamePanel .table-wrap" />
     </div>

@@ -35,12 +35,14 @@ export type FlowEventType =
   | "round_started"
   | "turn_changed"
   | "bid_submitted"
+  | "card_played"
   | "trick_resolved"
   | "round_scored"
+  | "game_finished"
   | "match_finished";
 
 export interface FlowEvent {
-  kind: FlowEventType;
+  kind: FlowEventType | string;
   round_number: number;
   status: string;
   phase: string;
