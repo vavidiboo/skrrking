@@ -33,6 +33,277 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// node_modules/scheduler/cjs/scheduler.development.js
+var require_scheduler_development = __commonJS({
+  "node_modules/scheduler/cjs/scheduler.development.js"(exports) {
+    "use strict";
+    (function() {
+      function performWorkUntilDeadline() {
+        needsPaint = false;
+        if (isMessageLoopRunning) {
+          var currentTime = exports.unstable_now();
+          startTime = currentTime;
+          var hasMoreWork = true;
+          try {
+            a: {
+              isHostCallbackScheduled = false;
+              isHostTimeoutScheduled && (isHostTimeoutScheduled = false, localClearTimeout(taskTimeoutID), taskTimeoutID = -1);
+              isPerformingWork = true;
+              var previousPriorityLevel = currentPriorityLevel;
+              try {
+                b: {
+                  advanceTimers(currentTime);
+                  for (currentTask = peek(taskQueue); null !== currentTask && !(currentTask.expirationTime > currentTime && shouldYieldToHost()); ) {
+                    var callback = currentTask.callback;
+                    if ("function" === typeof callback) {
+                      currentTask.callback = null;
+                      currentPriorityLevel = currentTask.priorityLevel;
+                      var continuationCallback = callback(
+                        currentTask.expirationTime <= currentTime
+                      );
+                      currentTime = exports.unstable_now();
+                      if ("function" === typeof continuationCallback) {
+                        currentTask.callback = continuationCallback;
+                        advanceTimers(currentTime);
+                        hasMoreWork = true;
+                        break b;
+                      }
+                      currentTask === peek(taskQueue) && pop(taskQueue);
+                      advanceTimers(currentTime);
+                    } else pop(taskQueue);
+                    currentTask = peek(taskQueue);
+                  }
+                  if (null !== currentTask) hasMoreWork = true;
+                  else {
+                    var firstTimer = peek(timerQueue);
+                    null !== firstTimer && requestHostTimeout(
+                      handleTimeout,
+                      firstTimer.startTime - currentTime
+                    );
+                    hasMoreWork = false;
+                  }
+                }
+                break a;
+              } finally {
+                currentTask = null, currentPriorityLevel = previousPriorityLevel, isPerformingWork = false;
+              }
+              hasMoreWork = void 0;
+            }
+          } finally {
+            hasMoreWork ? schedulePerformWorkUntilDeadline() : isMessageLoopRunning = false;
+          }
+        }
+      }
+      function push(heap, node) {
+        var index = heap.length;
+        heap.push(node);
+        a: for (; 0 < index; ) {
+          var parentIndex = index - 1 >>> 1, parent = heap[parentIndex];
+          if (0 < compare(parent, node))
+            heap[parentIndex] = node, heap[index] = parent, index = parentIndex;
+          else break a;
+        }
+      }
+      function peek(heap) {
+        return 0 === heap.length ? null : heap[0];
+      }
+      function pop(heap) {
+        if (0 === heap.length) return null;
+        var first = heap[0], last = heap.pop();
+        if (last !== first) {
+          heap[0] = last;
+          a: for (var index = 0, length = heap.length, halfLength = length >>> 1; index < halfLength; ) {
+            var leftIndex = 2 * (index + 1) - 1, left = heap[leftIndex], rightIndex = leftIndex + 1, right = heap[rightIndex];
+            if (0 > compare(left, last))
+              rightIndex < length && 0 > compare(right, left) ? (heap[index] = right, heap[rightIndex] = last, index = rightIndex) : (heap[index] = left, heap[leftIndex] = last, index = leftIndex);
+            else if (rightIndex < length && 0 > compare(right, last))
+              heap[index] = right, heap[rightIndex] = last, index = rightIndex;
+            else break a;
+          }
+        }
+        return first;
+      }
+      function compare(a, b) {
+        var diff = a.sortIndex - b.sortIndex;
+        return 0 !== diff ? diff : a.id - b.id;
+      }
+      function advanceTimers(currentTime) {
+        for (var timer = peek(timerQueue); null !== timer; ) {
+          if (null === timer.callback) pop(timerQueue);
+          else if (timer.startTime <= currentTime)
+            pop(timerQueue), timer.sortIndex = timer.expirationTime, push(taskQueue, timer);
+          else break;
+          timer = peek(timerQueue);
+        }
+      }
+      function handleTimeout(currentTime) {
+        isHostTimeoutScheduled = false;
+        advanceTimers(currentTime);
+        if (!isHostCallbackScheduled)
+          if (null !== peek(taskQueue))
+            isHostCallbackScheduled = true, isMessageLoopRunning || (isMessageLoopRunning = true, schedulePerformWorkUntilDeadline());
+          else {
+            var firstTimer = peek(timerQueue);
+            null !== firstTimer && requestHostTimeout(
+              handleTimeout,
+              firstTimer.startTime - currentTime
+            );
+          }
+      }
+      function shouldYieldToHost() {
+        return needsPaint ? true : exports.unstable_now() - startTime < frameInterval ? false : true;
+      }
+      function requestHostTimeout(callback, ms) {
+        taskTimeoutID = localSetTimeout(function() {
+          callback(exports.unstable_now());
+        }, ms);
+      }
+      "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
+      exports.unstable_now = void 0;
+      if ("object" === typeof performance && "function" === typeof performance.now) {
+        var localPerformance = performance;
+        exports.unstable_now = function() {
+          return localPerformance.now();
+        };
+      } else {
+        var localDate = Date, initialTime = localDate.now();
+        exports.unstable_now = function() {
+          return localDate.now() - initialTime;
+        };
+      }
+      var taskQueue = [], timerQueue = [], taskIdCounter = 1, currentTask = null, currentPriorityLevel = 3, isPerformingWork = false, isHostCallbackScheduled = false, isHostTimeoutScheduled = false, needsPaint = false, localSetTimeout = "function" === typeof setTimeout ? setTimeout : null, localClearTimeout = "function" === typeof clearTimeout ? clearTimeout : null, localSetImmediate = "undefined" !== typeof setImmediate ? setImmediate : null, isMessageLoopRunning = false, taskTimeoutID = -1, frameInterval = 5, startTime = -1;
+      if ("function" === typeof localSetImmediate)
+        var schedulePerformWorkUntilDeadline = function() {
+          localSetImmediate(performWorkUntilDeadline);
+        };
+      else if ("undefined" !== typeof MessageChannel) {
+        var channel = new MessageChannel(), port = channel.port2;
+        channel.port1.onmessage = performWorkUntilDeadline;
+        schedulePerformWorkUntilDeadline = function() {
+          port.postMessage(null);
+        };
+      } else
+        schedulePerformWorkUntilDeadline = function() {
+          localSetTimeout(performWorkUntilDeadline, 0);
+        };
+      exports.unstable_IdlePriority = 5;
+      exports.unstable_ImmediatePriority = 1;
+      exports.unstable_LowPriority = 4;
+      exports.unstable_NormalPriority = 3;
+      exports.unstable_Profiling = null;
+      exports.unstable_UserBlockingPriority = 2;
+      exports.unstable_cancelCallback = function(task) {
+        task.callback = null;
+      };
+      exports.unstable_forceFrameRate = function(fps) {
+        0 > fps || 125 < fps ? console.error(
+          "forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported"
+        ) : frameInterval = 0 < fps ? Math.floor(1e3 / fps) : 5;
+      };
+      exports.unstable_getCurrentPriorityLevel = function() {
+        return currentPriorityLevel;
+      };
+      exports.unstable_next = function(eventHandler) {
+        switch (currentPriorityLevel) {
+          case 1:
+          case 2:
+          case 3:
+            var priorityLevel = 3;
+            break;
+          default:
+            priorityLevel = currentPriorityLevel;
+        }
+        var previousPriorityLevel = currentPriorityLevel;
+        currentPriorityLevel = priorityLevel;
+        try {
+          return eventHandler();
+        } finally {
+          currentPriorityLevel = previousPriorityLevel;
+        }
+      };
+      exports.unstable_requestPaint = function() {
+        needsPaint = true;
+      };
+      exports.unstable_runWithPriority = function(priorityLevel, eventHandler) {
+        switch (priorityLevel) {
+          case 1:
+          case 2:
+          case 3:
+          case 4:
+          case 5:
+            break;
+          default:
+            priorityLevel = 3;
+        }
+        var previousPriorityLevel = currentPriorityLevel;
+        currentPriorityLevel = priorityLevel;
+        try {
+          return eventHandler();
+        } finally {
+          currentPriorityLevel = previousPriorityLevel;
+        }
+      };
+      exports.unstable_scheduleCallback = function(priorityLevel, callback, options) {
+        var currentTime = exports.unstable_now();
+        "object" === typeof options && null !== options ? (options = options.delay, options = "number" === typeof options && 0 < options ? currentTime + options : currentTime) : options = currentTime;
+        switch (priorityLevel) {
+          case 1:
+            var timeout = -1;
+            break;
+          case 2:
+            timeout = 250;
+            break;
+          case 5:
+            timeout = 1073741823;
+            break;
+          case 4:
+            timeout = 1e4;
+            break;
+          default:
+            timeout = 5e3;
+        }
+        timeout = options + timeout;
+        priorityLevel = {
+          id: taskIdCounter++,
+          callback,
+          priorityLevel,
+          startTime: options,
+          expirationTime: timeout,
+          sortIndex: -1
+        };
+        options > currentTime ? (priorityLevel.sortIndex = options, push(timerQueue, priorityLevel), null === peek(taskQueue) && priorityLevel === peek(timerQueue) && (isHostTimeoutScheduled ? (localClearTimeout(taskTimeoutID), taskTimeoutID = -1) : isHostTimeoutScheduled = true, requestHostTimeout(handleTimeout, options - currentTime))) : (priorityLevel.sortIndex = timeout, push(taskQueue, priorityLevel), isHostCallbackScheduled || isPerformingWork || (isHostCallbackScheduled = true, isMessageLoopRunning || (isMessageLoopRunning = true, schedulePerformWorkUntilDeadline())));
+        return priorityLevel;
+      };
+      exports.unstable_shouldYield = shouldYieldToHost;
+      exports.unstable_wrapCallback = function(callback) {
+        var parentPriorityLevel = currentPriorityLevel;
+        return function() {
+          var previousPriorityLevel = currentPriorityLevel;
+          currentPriorityLevel = parentPriorityLevel;
+          try {
+            return callback.apply(this, arguments);
+          } finally {
+            currentPriorityLevel = previousPriorityLevel;
+          }
+        };
+      };
+      "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
+    })();
+  }
+});
+
+// node_modules/scheduler/index.js
+var require_scheduler = __commonJS({
+  "node_modules/scheduler/index.js"(exports, module) {
+    "use strict";
+    if (false) {
+      module.exports = null;
+    } else {
+      module.exports = require_scheduler_development();
+    }
+  }
+});
+
 // node_modules/react/cjs/react.development.js
 var require_react_development = __commonJS({
   "node_modules/react/cjs/react.development.js"(exports, module) {
@@ -1017,277 +1288,6 @@ var require_react = __commonJS({
   }
 });
 
-// node_modules/scheduler/cjs/scheduler.development.js
-var require_scheduler_development = __commonJS({
-  "node_modules/scheduler/cjs/scheduler.development.js"(exports) {
-    "use strict";
-    (function() {
-      function performWorkUntilDeadline() {
-        needsPaint = false;
-        if (isMessageLoopRunning) {
-          var currentTime = exports.unstable_now();
-          startTime = currentTime;
-          var hasMoreWork = true;
-          try {
-            a: {
-              isHostCallbackScheduled = false;
-              isHostTimeoutScheduled && (isHostTimeoutScheduled = false, localClearTimeout(taskTimeoutID), taskTimeoutID = -1);
-              isPerformingWork = true;
-              var previousPriorityLevel = currentPriorityLevel;
-              try {
-                b: {
-                  advanceTimers(currentTime);
-                  for (currentTask = peek(taskQueue); null !== currentTask && !(currentTask.expirationTime > currentTime && shouldYieldToHost()); ) {
-                    var callback = currentTask.callback;
-                    if ("function" === typeof callback) {
-                      currentTask.callback = null;
-                      currentPriorityLevel = currentTask.priorityLevel;
-                      var continuationCallback = callback(
-                        currentTask.expirationTime <= currentTime
-                      );
-                      currentTime = exports.unstable_now();
-                      if ("function" === typeof continuationCallback) {
-                        currentTask.callback = continuationCallback;
-                        advanceTimers(currentTime);
-                        hasMoreWork = true;
-                        break b;
-                      }
-                      currentTask === peek(taskQueue) && pop(taskQueue);
-                      advanceTimers(currentTime);
-                    } else pop(taskQueue);
-                    currentTask = peek(taskQueue);
-                  }
-                  if (null !== currentTask) hasMoreWork = true;
-                  else {
-                    var firstTimer = peek(timerQueue);
-                    null !== firstTimer && requestHostTimeout(
-                      handleTimeout,
-                      firstTimer.startTime - currentTime
-                    );
-                    hasMoreWork = false;
-                  }
-                }
-                break a;
-              } finally {
-                currentTask = null, currentPriorityLevel = previousPriorityLevel, isPerformingWork = false;
-              }
-              hasMoreWork = void 0;
-            }
-          } finally {
-            hasMoreWork ? schedulePerformWorkUntilDeadline() : isMessageLoopRunning = false;
-          }
-        }
-      }
-      function push(heap, node) {
-        var index = heap.length;
-        heap.push(node);
-        a: for (; 0 < index; ) {
-          var parentIndex = index - 1 >>> 1, parent = heap[parentIndex];
-          if (0 < compare(parent, node))
-            heap[parentIndex] = node, heap[index] = parent, index = parentIndex;
-          else break a;
-        }
-      }
-      function peek(heap) {
-        return 0 === heap.length ? null : heap[0];
-      }
-      function pop(heap) {
-        if (0 === heap.length) return null;
-        var first = heap[0], last = heap.pop();
-        if (last !== first) {
-          heap[0] = last;
-          a: for (var index = 0, length = heap.length, halfLength = length >>> 1; index < halfLength; ) {
-            var leftIndex = 2 * (index + 1) - 1, left = heap[leftIndex], rightIndex = leftIndex + 1, right = heap[rightIndex];
-            if (0 > compare(left, last))
-              rightIndex < length && 0 > compare(right, left) ? (heap[index] = right, heap[rightIndex] = last, index = rightIndex) : (heap[index] = left, heap[leftIndex] = last, index = leftIndex);
-            else if (rightIndex < length && 0 > compare(right, last))
-              heap[index] = right, heap[rightIndex] = last, index = rightIndex;
-            else break a;
-          }
-        }
-        return first;
-      }
-      function compare(a, b) {
-        var diff = a.sortIndex - b.sortIndex;
-        return 0 !== diff ? diff : a.id - b.id;
-      }
-      function advanceTimers(currentTime) {
-        for (var timer = peek(timerQueue); null !== timer; ) {
-          if (null === timer.callback) pop(timerQueue);
-          else if (timer.startTime <= currentTime)
-            pop(timerQueue), timer.sortIndex = timer.expirationTime, push(taskQueue, timer);
-          else break;
-          timer = peek(timerQueue);
-        }
-      }
-      function handleTimeout(currentTime) {
-        isHostTimeoutScheduled = false;
-        advanceTimers(currentTime);
-        if (!isHostCallbackScheduled)
-          if (null !== peek(taskQueue))
-            isHostCallbackScheduled = true, isMessageLoopRunning || (isMessageLoopRunning = true, schedulePerformWorkUntilDeadline());
-          else {
-            var firstTimer = peek(timerQueue);
-            null !== firstTimer && requestHostTimeout(
-              handleTimeout,
-              firstTimer.startTime - currentTime
-            );
-          }
-      }
-      function shouldYieldToHost() {
-        return needsPaint ? true : exports.unstable_now() - startTime < frameInterval ? false : true;
-      }
-      function requestHostTimeout(callback, ms) {
-        taskTimeoutID = localSetTimeout(function() {
-          callback(exports.unstable_now());
-        }, ms);
-      }
-      "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      exports.unstable_now = void 0;
-      if ("object" === typeof performance && "function" === typeof performance.now) {
-        var localPerformance = performance;
-        exports.unstable_now = function() {
-          return localPerformance.now();
-        };
-      } else {
-        var localDate = Date, initialTime = localDate.now();
-        exports.unstable_now = function() {
-          return localDate.now() - initialTime;
-        };
-      }
-      var taskQueue = [], timerQueue = [], taskIdCounter = 1, currentTask = null, currentPriorityLevel = 3, isPerformingWork = false, isHostCallbackScheduled = false, isHostTimeoutScheduled = false, needsPaint = false, localSetTimeout = "function" === typeof setTimeout ? setTimeout : null, localClearTimeout = "function" === typeof clearTimeout ? clearTimeout : null, localSetImmediate = "undefined" !== typeof setImmediate ? setImmediate : null, isMessageLoopRunning = false, taskTimeoutID = -1, frameInterval = 5, startTime = -1;
-      if ("function" === typeof localSetImmediate)
-        var schedulePerformWorkUntilDeadline = function() {
-          localSetImmediate(performWorkUntilDeadline);
-        };
-      else if ("undefined" !== typeof MessageChannel) {
-        var channel = new MessageChannel(), port = channel.port2;
-        channel.port1.onmessage = performWorkUntilDeadline;
-        schedulePerformWorkUntilDeadline = function() {
-          port.postMessage(null);
-        };
-      } else
-        schedulePerformWorkUntilDeadline = function() {
-          localSetTimeout(performWorkUntilDeadline, 0);
-        };
-      exports.unstable_IdlePriority = 5;
-      exports.unstable_ImmediatePriority = 1;
-      exports.unstable_LowPriority = 4;
-      exports.unstable_NormalPriority = 3;
-      exports.unstable_Profiling = null;
-      exports.unstable_UserBlockingPriority = 2;
-      exports.unstable_cancelCallback = function(task) {
-        task.callback = null;
-      };
-      exports.unstable_forceFrameRate = function(fps) {
-        0 > fps || 125 < fps ? console.error(
-          "forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported"
-        ) : frameInterval = 0 < fps ? Math.floor(1e3 / fps) : 5;
-      };
-      exports.unstable_getCurrentPriorityLevel = function() {
-        return currentPriorityLevel;
-      };
-      exports.unstable_next = function(eventHandler) {
-        switch (currentPriorityLevel) {
-          case 1:
-          case 2:
-          case 3:
-            var priorityLevel = 3;
-            break;
-          default:
-            priorityLevel = currentPriorityLevel;
-        }
-        var previousPriorityLevel = currentPriorityLevel;
-        currentPriorityLevel = priorityLevel;
-        try {
-          return eventHandler();
-        } finally {
-          currentPriorityLevel = previousPriorityLevel;
-        }
-      };
-      exports.unstable_requestPaint = function() {
-        needsPaint = true;
-      };
-      exports.unstable_runWithPriority = function(priorityLevel, eventHandler) {
-        switch (priorityLevel) {
-          case 1:
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-            break;
-          default:
-            priorityLevel = 3;
-        }
-        var previousPriorityLevel = currentPriorityLevel;
-        currentPriorityLevel = priorityLevel;
-        try {
-          return eventHandler();
-        } finally {
-          currentPriorityLevel = previousPriorityLevel;
-        }
-      };
-      exports.unstable_scheduleCallback = function(priorityLevel, callback, options) {
-        var currentTime = exports.unstable_now();
-        "object" === typeof options && null !== options ? (options = options.delay, options = "number" === typeof options && 0 < options ? currentTime + options : currentTime) : options = currentTime;
-        switch (priorityLevel) {
-          case 1:
-            var timeout = -1;
-            break;
-          case 2:
-            timeout = 250;
-            break;
-          case 5:
-            timeout = 1073741823;
-            break;
-          case 4:
-            timeout = 1e4;
-            break;
-          default:
-            timeout = 5e3;
-        }
-        timeout = options + timeout;
-        priorityLevel = {
-          id: taskIdCounter++,
-          callback,
-          priorityLevel,
-          startTime: options,
-          expirationTime: timeout,
-          sortIndex: -1
-        };
-        options > currentTime ? (priorityLevel.sortIndex = options, push(timerQueue, priorityLevel), null === peek(taskQueue) && priorityLevel === peek(timerQueue) && (isHostTimeoutScheduled ? (localClearTimeout(taskTimeoutID), taskTimeoutID = -1) : isHostTimeoutScheduled = true, requestHostTimeout(handleTimeout, options - currentTime))) : (priorityLevel.sortIndex = timeout, push(taskQueue, priorityLevel), isHostCallbackScheduled || isPerformingWork || (isHostCallbackScheduled = true, isMessageLoopRunning || (isMessageLoopRunning = true, schedulePerformWorkUntilDeadline())));
-        return priorityLevel;
-      };
-      exports.unstable_shouldYield = shouldYieldToHost;
-      exports.unstable_wrapCallback = function(callback) {
-        var parentPriorityLevel = currentPriorityLevel;
-        return function() {
-          var previousPriorityLevel = currentPriorityLevel;
-          currentPriorityLevel = parentPriorityLevel;
-          try {
-            return callback.apply(this, arguments);
-          } finally {
-            currentPriorityLevel = previousPriorityLevel;
-          }
-        };
-      };
-      "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
-    })();
-  }
-});
-
-// node_modules/scheduler/index.js
-var require_scheduler = __commonJS({
-  "node_modules/scheduler/index.js"(exports, module) {
-    "use strict";
-    if (false) {
-      module.exports = null;
-    } else {
-      module.exports = require_scheduler_development();
-    }
-  }
-});
-
 // node_modules/react-dom/cjs/react-dom.development.js
 var require_react_dom_development = __commonJS({
   "node_modules/react-dom/cjs/react-dom.development.js"(exports) {
@@ -1337,7 +1337,7 @@ var require_react_dom_development = __commonJS({
         return dispatcher;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React7 = require_react(), Internals = {
+      var React6 = require_react(), Internals = {
         d: {
           f: noop2,
           r: function() {
@@ -1355,7 +1355,7 @@ var require_react_dom_development = __commonJS({
         },
         p: 0,
         findDOMNode: null
-      }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React7.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+      }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React6.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
         "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
       );
@@ -2890,7 +2890,7 @@ var require_react_dom_client_development = __commonJS({
         "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
       }
       function validateOptionProps(element, props) {
-        null == props.value && ("object" === typeof props.children && null !== props.children ? React7.Children.forEach(props.children, function(child) {
+        null == props.value && ("object" === typeof props.children && null !== props.children ? React6.Children.forEach(props.children, function(child) {
           null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
             "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
           ));
@@ -18522,14 +18522,14 @@ var require_react_dom_client_development = __commonJS({
         ));
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var Scheduler = require_scheduler(), React7 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+      var Scheduler = require_scheduler(), React6 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
       /* @__PURE__ */ Symbol.for("react.scope");
       var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
       /* @__PURE__ */ Symbol.for("react.legacy_hidden");
       /* @__PURE__ */ Symbol.for("react.tracing_marker");
       var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
       /* @__PURE__ */ Symbol.for("react.view_transition");
-      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React7.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+      var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React6.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
         pending: false,
         data: null,
         method: null,
@@ -21317,7 +21317,7 @@ var require_react_dom_client_development = __commonJS({
         }
       };
       (function() {
-        var isomorphicReactPackageVersion = React7.version;
+        var isomorphicReactPackageVersion = React6.version;
         if ("19.2.6" !== isomorphicReactPackageVersion)
           throw Error(
             'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.6\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -21457,7 +21457,7 @@ var require_client = __commonJS({
   }
 });
 
-// discord_activity_skullking/app/src/legacyBridge.js
+// discord_activity_skullking/app/src/legacyBridge.ts
 function emitChange() {
   listeners.forEach((listener) => {
     try {
@@ -21480,7 +21480,10 @@ function setReactUiState(patch) {
     ...reactUiState,
     ...patch && typeof patch === "object" ? patch : {}
   };
-  const changed = Object.keys(nextState).some((key) => !Object.is(nextState[key], reactUiState[key]));
+  const changed = Object.keys(nextState).some((key) => {
+    const typedKey = key;
+    return !Object.is(nextState[typedKey], reactUiState[typedKey]);
+  });
   if (!changed) {
     return;
   }
@@ -21489,7 +21492,8 @@ function setReactUiState(patch) {
 }
 var reactUiState, listeners;
 var init_legacyBridge = __esm({
-  "discord_activity_skullking/app/src/legacyBridge.js"() {
+  "discord_activity_skullking/app/src/legacyBridge.ts"() {
+    "use strict";
     reactUiState = {
       currentView: "home",
       gameState: null,
@@ -21716,18 +21720,18 @@ var require_react_jsx_runtime_development = __commonJS({
       function isValidElement2(object) {
         return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
       }
-      var React7 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React7.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+      var React6 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React6.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
         return null;
       };
-      React7 = {
+      React6 = {
         react_stack_bottom_frame: function(callStackForError) {
           return callStackForError();
         }
       };
       var specialPropKeyWarningShown;
       var didWarnAboutElementRef = {};
-      var unknownOwnerDebugStack = React7.react_stack_bottom_frame.bind(
-        React7,
+      var unknownOwnerDebugStack = React6.react_stack_bottom_frame.bind(
+        React6,
         UnknownOwner
       )();
       var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -21768,6 +21772,14 @@ var require_jsx_runtime = __commonJS({
     } else {
       module.exports = require_react_jsx_runtime_development();
     }
+  }
+});
+
+// discord_activity_skullking/app/src/legacyBridge.js
+var init_legacyBridge2 = __esm({
+  "discord_activity_skullking/app/src/legacyBridge.js"() {
+    "use strict";
+    init_legacyBridge();
   }
 });
 
@@ -22008,7 +22020,7 @@ function syncLobbySettingsUi(game) {
   const isHost = isLobbyHost();
   const settingsPending = Boolean(appState.lobbySettingsPending);
   const s = game.settings;
-  const tl = Number(s.turn_limit_seconds || 20);
+  const tl = Number(s.turn_limit_seconds || TURN_LIMIT_SECONDS);
   if (lobbyTurnTimerVal) lobbyTurnTimerVal.textContent = `${tl}s`;
   if (lobbyTurnTimerDown) lobbyTurnTimerDown.disabled = !isHost || settingsPending;
   if (lobbyTurnTimerUp) lobbyTurnTimerUp.disabled = !isHost || settingsPending;
@@ -22667,9 +22679,13 @@ async function warmStartupCaches() {
   }
   appState.startupWarmDone = true;
   const preloadTargets = [
-    `${window.location.origin}/assets/bg_ship_1.jpg`,
-    `${window.location.origin}/assets/bg_ship_2.jpg`,
-    `${window.location.origin}/assets/bg_ship_3.jpg`
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_1.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_2.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_3.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_4.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_5.jpg`,
+    `${window.location.origin}/assets/images/lobby/bg_lobby.jpg`,
+    `${window.location.origin}/assets/images/game/bg_game_table_day.jpg`
   ];
   const avatarTargets = [];
   if (appState.discordUserId) {
@@ -22685,6 +22701,18 @@ async function warmStartupCaches() {
   for (const src of allTargets) {
     await preloadImage(src);
   }
+}
+function applyRandomSplashBackground() {
+  const { splash: currentSplash } = getSplashNodes();
+  if (!currentSplash || !SPLASH_BACKGROUND_PATHS.length) {
+    return;
+  }
+  const previousPath = String(appState.currentSplashBackgroundPath || "");
+  const candidates = SPLASH_BACKGROUND_PATHS.filter((path) => path !== previousPath);
+  const sourcePool = candidates.length ? candidates : SPLASH_BACKGROUND_PATHS;
+  const nextPath = sourcePool[Math.floor(Math.random() * sourcePool.length)];
+  appState.currentSplashBackgroundPath = nextPath;
+  currentSplash.style.setProperty("--splash-bg-image", `url('${nextPath}')`);
 }
 function fitViewport() {
   const width = Math.max(320, Math.round(window.innerWidth || 0));
@@ -22775,6 +22803,9 @@ function showSplash(message = "\uCC98\uB9AC \uC911...", options = {}) {
   }
   if (!currentSplash) {
     return;
+  }
+  if (splashMode === "boot") {
+    applyRandomSplashBackground();
   }
   if (appState.splashHideTimer) {
     clearTimeout(appState.splashHideTimer);
@@ -25636,6 +25667,9 @@ function buildCompactCardInner(card) {
 function normalizedCardType(card) {
   return String(card?.type || card?.kind || "").toLowerCase();
 }
+function isSpecialCardType(cardType) {
+  return String(cardType || "").trim().toLowerCase() !== "suit";
+}
 function normalizedCardFxType(card) {
   const type = normalizedCardType(card);
   if (type === "suit") {
@@ -26121,11 +26155,13 @@ function buildInteractionHudState(game, uiModel) {
     };
   }
   if (String(safeGame.status || "").toLowerCase() === ROOM_STATUS.BIDDING) {
+    const bidLimitSeconds = resolvedTurnLimitSeconds(safeGame);
+    const inspectSeconds = preBidDelayRemainingSeconds(safeGame);
     return {
       tone: "neutral",
       kicker: "Bid Phase",
       title: "\uC190\uD328\uB97C \uC77D\uACE0 \uAC00\uC838\uAC08 \uD2B8\uB9AD \uC218\uB97C \uC608\uCE21\uD558\uC138\uC694.",
-      body: safeUiModel.predictionSummary || "\uB3D9\uC2DC \uBE44\uB529 \uD398\uC774\uC988\uC785\uB2C8\uB2E4."
+      body: inspectSeconds > 0 ? `\uC190\uD328 \uD655\uC778 ${inspectSeconds}\uCD08 \uD6C4 \uB3D9\uC2DC \uBE44\uB529\uC774 \uC2DC\uC791\uB418\uACE0, \uBE44\uB529 \uC81C\uD55C \uC2DC\uAC04\uC740 ${bidLimitSeconds}\uCD08\uC785\uB2C8\uB2E4.` : safeUiModel.predictionSummary || `\uB3D9\uC2DC \uBE44\uB529 \uC9C4\uD589 \uC911 \xB7 \uC81C\uD55C \uC2DC\uAC04 ${bidLimitSeconds}\uCD08`
     };
   }
   if (!isMyTurn) {
@@ -26207,8 +26243,13 @@ function renderTrickCenter(game, timeLeft) {
     appState.uiCache.trickAnimationStageKey = "";
     appState.uiCache.trickAnimatedCardsByPlayer = {};
     const prep = document.createElement("div");
-    prep.className = "trick-card";
-    prep.innerHTML = `<div>\uD578\uB4DC \uD655\uC778</div><div>${preBidDelaySeconds}\uCD08 \uD6C4 \uB3D9\uC2DC \uBE44\uB529</div>`;
+    prep.className = "trick-card pre-bid-inspect";
+    prep.innerHTML = `
+      <div class="trick-card-kicker">Pre-Bid Inspect</div>
+      <div>\uD578\uB4DC \uD655\uC778</div>
+      <div>${preBidDelaySeconds}\uCD08 \uD6C4 \uB3D9\uC2DC \uBE44\uB529</div>
+      <div class="trick-card-meta">\uBE44\uB529 \uC81C\uD55C ${resolvedTurnLimitSeconds(game)}\uCD08</div>
+    `;
     trickCenter.appendChild(prep);
     return;
   }
@@ -26245,6 +26286,9 @@ function renderTrickCenter(game, timeLeft) {
   const cardRow = document.createElement("div");
   cardRow.className = "trick-zone-cards";
   const projectedWinnerId = String(previewOutcome?.outcome?.winnerId || "");
+  let resolvedWinnerCard = null;
+  let resolvedWinnerNode = null;
+  let resolvedWinnerFxType = "";
   source.forEach((play) => {
     const playerKey = String(play?.player_id || "");
     const cardKey = `${playerKey}:${cardStateSignature(play.card)}`;
@@ -26261,14 +26305,19 @@ function renderTrickCenter(game, timeLeft) {
     const cardWrap = document.createElement("div");
     cardWrap.className = "trick-zone-card-wrap";
     const card = renderCard(play.card, { className: "trick-zone-card", compact: true });
+    const cardType = normalizedCardType(play.card);
     const fxType = normalizedCardFxType(play.card);
     const isLeadingPlay = Boolean(projectedWinnerId) && String(play?.player_id || "") === projectedWinnerId;
-    const cinematicFxType = normalizedCardType(play.card) !== "suit" ? normalizedCardType(play.card) : isLeadingPlay ? "lead" : "";
+    const cinematicFxType = isSpecialCardType(cardType) ? cardType : isLeadingPlay ? "lead" : "";
     cardWrap.classList.add(`fx-${fxType}`);
     card.classList.add(`fx-${fxType}`);
     if (isLeadingPlay) {
       cardWrap.classList.add("is-leading");
       card.classList.add("is-leading", "hs-winning");
+      if (isSpecialCardType(cardType)) {
+        cardWrap.classList.add("is-leading-special");
+        card.classList.add("is-leading-special");
+      }
     }
     if (shouldAnimateEntry) {
       card.classList.add("hs-landing");
@@ -26295,6 +26344,11 @@ function renderTrickCenter(game, timeLeft) {
     if (play.pending_preview) {
       card.classList.add("pending-preview");
     }
+    if (heldStatus && String(play?.player_id || "") === String(heldStatus?.winnerId || "") && isSpecialCardType(cardType)) {
+      resolvedWinnerCard = play.card;
+      resolvedWinnerNode = card;
+      resolvedWinnerFxType = cardType;
+    }
     const label = document.createElement("div");
     label.className = "trick-zone-player";
     label.textContent = String(play.player_name || play.player_id || "Player");
@@ -26305,6 +26359,29 @@ function renderTrickCenter(game, timeLeft) {
   trickCenter.appendChild(cardRow);
   appState.uiCache.trickAnimationStageKey = trickAnimationStageKey;
   appState.uiCache.trickAnimatedCardsByPlayer = nextAnimatedCards;
+  if (heldStatus && resolvedWinnerCard && resolvedWinnerNode) {
+    const resolvedFxKey = [
+      String(game?.session_id || ""),
+      String(game?.round_number || 0),
+      String(game?.tricks_completed || 0),
+      String(heldStatus?.winnerId || ""),
+      cardStateSignature(resolvedWinnerCard),
+      String(heldStatus?.appliedRule || ""),
+      "winner"
+    ].join(":");
+    if (!appState.uiCache.cinematicFxKeys?.[resolvedFxKey]) {
+      appState.uiCache.cinematicFxKeys[resolvedFxKey] = true;
+      window.SkullKingFX?.playCardEffect?.({
+        card: resolvedWinnerCard,
+        effectType: resolvedWinnerFxType,
+        sourceElement: resolvedWinnerNode,
+        targetElement: resolvedWinnerNode,
+        highlightElement: resolvedWinnerNode,
+        boardSelector: "#gamePanel .table-wrap",
+        result: "win"
+      });
+    }
+  }
   const status = document.createElement("div");
   status.className = "trick-zone-status";
   if (heldStatus) {
@@ -27669,7 +27746,10 @@ function openBidDialog(maxBid) {
   }
   if (bidDialogHint) {
     const round = Number(appState.game?.round_number || 0);
-    bidDialogHint.textContent = `Round ${round > 0 ? round : "-"}`;
+    bidDialogHint.textContent = `Round ${round > 0 ? round : "-"} \xB7 Limit ${resolvedTurnLimitSeconds(appState.game)}s`;
+  }
+  if (bidDialogMeta) {
+    bidDialogMeta.textContent = `\uC190\uD328 \uD655\uC778 ${PRE_BID_DELAY_SECONDS}\uCD08 \uD6C4 \uB3D9\uC2DC \uBE44\uB529 \xB7 \uC81C\uD55C \uC2DC\uAC04 ${resolvedTurnLimitSeconds(appState.game)}\uCD08`;
   }
   updateBidStepButtons();
   safeOpenDialog(bidDialog);
@@ -27937,27 +28017,69 @@ function renderFinishDialog(game) {
   const myScore = Number(me?.score || 0);
   const totalRounds = Number(game.round_number || 0);
   const settings = game.settings || {};
+  const forfeitTone = Boolean(
+    game?.ended_reason === "forfeit" || game?.ended_reason === "surrender" || game?.result_tone === "forfeit" || me?.forfeited === true || me?.surrendered === true || me?.status === "forfeit" || me?.status === "surrendered" || me?.left === true
+  );
+  const firstPlaceTone = !forfeitTone && myRank === 1;
+  const resultTone = forfeitTone ? "forfeit" : firstPlaceTone ? "firstPlace" : myScore >= 0 ? "victory" : "defeat";
+  const resultTitleByTone = {
+    firstPlace: "1\uB4F1 \uB2EC\uC131",
+    victory: "\uC2B9\uB9AC\uD558\uC600\uC2B5\uB2C8\uB2E4",
+    defeat: "\uD328\uBC30\uD558\uC600\uC2B5\uB2C8\uB2E4",
+    forfeit: "\uAE30\uAD8C\uD558\uC600\uC2B5\uB2C8\uB2E4"
+  };
+  const resultSubByTone = {
+    firstPlace: `\uCD1D ${totalRounds}\uB77C\uC6B4\uB4DC \uD56D\uD574 \uB05D\uC5D0 \uAC00\uC7A5 \uBA3C\uC800 \uBCF4\uBB3C\uC744 \uCC28\uC9C0\uD588\uC2B5\uB2C8\uB2E4.`,
+    victory: `\uCD1D ${totalRounds}\uB77C\uC6B4\uB4DC \uD56D\uD574\uB97C \uBB34\uC0AC\uD788 \uB9C8\uCCE4\uC2B5\uB2C8\uB2E4. \uBCF4\uC0C1\uACFC \uC810\uC218\uB97C \uD655\uC778\uD558\uC138\uC694.`,
+    defeat: `\uCD1D ${totalRounds}\uB77C\uC6B4\uB4DC \uD56D\uD574\uAC00 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC810\uC218\uB97C \uD655\uC778\uD558\uACE0 \uB2E4\uC2DC \uB3C4\uC804\uD558\uC138\uC694.`,
+    forfeit: `\uC774\uBC88 \uD56D\uD574\uC5D0\uC11C\uB294 \uBB3C\uB7EC\uB0AC\uC2B5\uB2C8\uB2E4. \uC815\uBE44\uB97C \uB9C8\uCE58\uACE0 \uB2E4\uC2DC \uB3C4\uC804\uD558\uC138\uC694.`
+  };
+  const resultSummaryByTone = {
+    firstPlace: "Treasure Crown",
+    victory: "Voyage Cleared",
+    defeat: `Winner \xB7 ${winner?.name || "-"}`,
+    forfeit: "Retreated"
+  };
+  const resultPillByTone = {
+    firstPlace: `${winner?.score ?? 0} pts`,
+    victory: `\uB0B4 \uC21C\uC704 ${myRank}\uC704`,
+    defeat: `\uB0B4 \uC21C\uC704 ${myRank}\uC704`,
+    forfeit: "\uAE30\uAD8C \uCC98\uB9AC"
+  };
+  const resultCoinByTone = {
+    firstPlace: "1\uC704",
+    victory: `${myRank}\uC704`,
+    defeat: `${myRank}\uC704`,
+    forfeit: "\uAE30\uAD8C"
+  };
+  const resultEventLabelByTone = {
+    firstPlace: "First Place",
+    victory: "Victory",
+    defeat: "Defeat",
+    forfeit: "Forfeit"
+  };
   if (finishDialog) {
-    finishDialog.dataset.tone = iWon ? "victory" : "defeat";
+    finishDialog.dataset.tone = resultTone;
   }
   if (finishResultTitle) {
-    finishResultTitle.textContent = iWon ? "\uC2B9\uB9AC\uD558\uC600\uC2B5\uB2C8\uB2E4" : "\uD328\uBC30\uD558\uC600\uC2B5\uB2C8\uB2E4";
+    finishResultTitle.textContent = resultTitleByTone[resultTone];
   }
   if (finishResultSub) {
-    finishResultSub.textContent = iWon ? `\uCD1D ${totalRounds}\uB77C\uC6B4\uB4DC \uD56D\uD574 \uB05D\uC5D0 \uC815\uC0C1\uC5D0 \uC62C\uB790\uC2B5\uB2C8\uB2E4.` : `\uCD1D ${totalRounds}\uB77C\uC6B4\uB4DC \uD56D\uD574\uAC00 \uC885\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC810\uC218\uB97C \uD655\uC778\uD558\uACE0 \uB2E4\uC2DC \uB3C4\uC804\uD558\uC138\uC694.`;
+    finishResultSub.textContent = resultSubByTone[resultTone];
   }
   if (finishSummaryText) {
-    finishSummaryText.textContent = iWon ? "Champion Captain" : `Winner \xB7 ${winner?.name || "-"}`;
+    finishSummaryText.textContent = resultSummaryByTone[resultTone];
   }
   if (finishSummaryPill) {
-    finishSummaryPill.textContent = iWon ? `${winner?.score ?? 0} pts` : `\uB0B4 \uC21C\uC704 ${myRank}\uC704`;
+    finishSummaryPill.textContent = resultPillByTone[resultTone];
   }
   const myRow = me ? breakdownByPlayer[String(me.id || "")] || {} : {};
   if (finishResultCoin) {
-    finishResultCoin.textContent = me ? `${myRank}\uC704` : `${winner?.score ?? 0} pts`;
+    finishResultCoin.textContent = me ? resultCoinByTone[resultTone] : `${winner?.score ?? 0} pts`;
   }
   if (finishEventChips) {
     finishEventChips.innerHTML = `
+      <div class="pill">${resultEventLabelByTone[resultTone]}</div>
       <div class="pill">Leaderboard</div>
       <div class="pill">${totalRounds} Rounds</div>
       <div class="pill">Bonus ${Boolean(settings.bonus_enabled) ? "On" : "Off"}</div>
@@ -28166,15 +28288,16 @@ function onScoreDrawerDragEnd(event) {
   window.removeEventListener("pointerup", onScoreDrawerDragEnd);
   window.removeEventListener("pointercancel", onScoreDrawerDragEnd);
 }
-var DEFAULT_API_BASE, DEFAULT_CLIENT_ID, UNSET_CLIENT_ID, TURN_LIMIT_SECONDS, PRE_BID_DELAY_SECONDS, BOOT_SPLASH_MIN_VISIBLE_MS, ACTION_SPLASH_MIN_VISIBLE_MS, STATE_LONG_POLL_WAIT_MS, STATE_POLL_RETRY_MS, STATE_POLL_RESUME_MS, WS_OPEN_TIMEOUT_MS, WS_QUICK_CLOSE_THRESHOLD_MS, PING_PROBE_INTERVAL_MS, PING_STALE_AFTER_MS, WS_PING_TIMEOUT_MS, CONNECTION_STATUS, ROOM_STATUS, GAME_PHASE, VIEWER_ROLE, PENDING_ACTION_KIND, homePanel, lobbyPanel, gamePanel, sessionInput, nameInput, roomList, refreshRoomsBtn, playNowBtn, createRoomBtn, homePingChip, createRoomDialog, findRoomDialog, joinPasswordDialog, joinPasswordRoomName, joinPasswordInput, joinPasswordError, joinPasswordCancelBtn, joinPasswordSubmitBtn, refreshRoomsInModalBtn, closeFindRoomBtn, roomNameInput, maxPlayersInput, bonusEnabledInput, advancedRulesInput, useRoomPasswordInput, roomPasswordFieldWrap, roomPasswordInput, createRoomSubtitle, createRoomStepMode, createRoomStepOptions, createRoomNextBtn, createRoomBackBtn, createModeCasual, createModeAdvanced, confirmCreateRoomBtn, cancelCreateRoomBtn, startBtn, lobbyBackBtn, lobbyInviteBtn, lobbyInfo, playerList, lobbyTopbarDisplayName, lobbyRoomCode, lobbyPlayersChip, lobbyPingChip, lobbyTurnTimerVal, lobbyTurnTimerDown, lobbyTurnTimerUp, lobbyBonusToggle, lobbyAdvancedToggle, lobbySpectatorsToggle, roundTitle, phaseBadge, turnBadge, connectionBadge, gamePingBadge, turnProgress, turnProgressFill, turnProgressMeta, playerRing, trickCenter, tableCinematicFx, gameMiniBidValue, gameMiniWonValue, gameMiniScoreValue, reconnectOverlay, reconnectTitle, reconnectBody, scoreDialog, closeScoreDrawerBtn, scoreDrawerHeader, bidDialog, bidDialogInput, bidMinusBtn, bidPlusBtn, bidDialogSubmitBtn, bidDialogHint, interactionHud, interactionHudKicker, interactionHudTitle, interactionHudBody, handArea, scoreRows, scoreTabScores, scoreTabHistory, scoreTabGuide, scoreScoresPanel, scoreHistoryPanel, scoreGuidePanel, scoreHistoryRows, gameForfeitBtn, nextRoundBtn, eventDialog, eventDialogTitle, eventDialogBody, roundResultDialog, roundResultTitle, roundResultBody, closeRoundResultBtn, finishDialog, finishToLobbyBtn, finishToHomeBtn, finishResultTitle, finishResultSub, finishResultCoin, finishSummaryText, finishSummaryPill, finishResultRows, finishEventChips, logDialog, closeLogBtn, logArea, toast, tigressDialog, splash, splashStatus, splashProgressFill, splashPercent, splashDetail, appState, splashCta, TURN_TIMER_OPTIONS, SUIT_SYMBOLS, COMPACT_SUIT_LABELS, SPECIAL_ICONS, SPECIAL_KO, SUIT_NAMES_KO, PREVIEW_RULE_LABELS, ROPE_SHOW_THRESHOLD;
+var DEFAULT_API_BASE, DEFAULT_CLIENT_ID, UNSET_CLIENT_ID, TURN_LIMIT_SECONDS, PRE_BID_DELAY_SECONDS, BOOT_SPLASH_MIN_VISIBLE_MS, ACTION_SPLASH_MIN_VISIBLE_MS, STATE_LONG_POLL_WAIT_MS, STATE_POLL_RETRY_MS, STATE_POLL_RESUME_MS, WS_OPEN_TIMEOUT_MS, WS_QUICK_CLOSE_THRESHOLD_MS, PING_PROBE_INTERVAL_MS, PING_STALE_AFTER_MS, WS_PING_TIMEOUT_MS, SPLASH_BACKGROUND_PATHS, CONNECTION_STATUS, ROOM_STATUS, GAME_PHASE, VIEWER_ROLE, PENDING_ACTION_KIND, homePanel, lobbyPanel, gamePanel, sessionInput, nameInput, roomList, refreshRoomsBtn, playNowBtn, createRoomBtn, homePingChip, createRoomDialog, findRoomDialog, joinPasswordDialog, joinPasswordRoomName, joinPasswordInput, joinPasswordError, joinPasswordCancelBtn, joinPasswordSubmitBtn, refreshRoomsInModalBtn, closeFindRoomBtn, roomNameInput, maxPlayersInput, bonusEnabledInput, advancedRulesInput, useRoomPasswordInput, roomPasswordFieldWrap, roomPasswordInput, createRoomSubtitle, createRoomStepMode, createRoomStepOptions, createRoomNextBtn, createRoomBackBtn, createModeCasual, createModeAdvanced, confirmCreateRoomBtn, cancelCreateRoomBtn, startBtn, lobbyBackBtn, lobbyInviteBtn, lobbyInfo, playerList, lobbyTopbarDisplayName, lobbyRoomCode, lobbyPlayersChip, lobbyPingChip, lobbyTurnTimerVal, lobbyTurnTimerDown, lobbyTurnTimerUp, lobbyBonusToggle, lobbyAdvancedToggle, lobbySpectatorsToggle, roundTitle, phaseBadge, turnBadge, connectionBadge, gamePingBadge, turnProgress, turnProgressFill, turnProgressMeta, playerRing, trickCenter, tableCinematicFx, gameMiniBidValue, gameMiniWonValue, gameMiniScoreValue, reconnectOverlay, reconnectTitle, reconnectBody, scoreDialog, closeScoreDrawerBtn, scoreDrawerHeader, bidDialog, bidDialogInput, bidMinusBtn, bidPlusBtn, bidDialogSubmitBtn, bidDialogHint, bidDialogMeta, interactionHud, interactionHudKicker, interactionHudTitle, interactionHudBody, handArea, scoreRows, scoreTabScores, scoreTabHistory, scoreTabGuide, scoreScoresPanel, scoreHistoryPanel, scoreGuidePanel, scoreHistoryRows, gameForfeitBtn, nextRoundBtn, eventDialog, eventDialogTitle, eventDialogBody, roundResultDialog, roundResultTitle, roundResultBody, closeRoundResultBtn, finishDialog, finishToLobbyBtn, finishToHomeBtn, finishResultTitle, finishResultSub, finishResultCoin, finishSummaryText, finishSummaryPill, finishResultRows, finishEventChips, logDialog, closeLogBtn, logArea, toast, tigressDialog, splash, splashStatus, splashProgressFill, splashPercent, splashDetail, appState, splashCta, TURN_TIMER_OPTIONS, SUIT_SYMBOLS, COMPACT_SUIT_LABELS, SPECIAL_ICONS, SPECIAL_KO, SUIT_NAMES_KO, PREVIEW_RULE_LABELS, ROPE_SHOW_THRESHOLD;
 var init_legacy_app = __esm({
   "discord_activity_skullking/app/legacy-app.js"() {
-    init_legacyBridge();
+    "use strict";
+    init_legacyBridge2();
     DEFAULT_API_BASE = window.location.origin;
     DEFAULT_CLIENT_ID = "1488188343849324706";
     UNSET_CLIENT_ID = "YOUR_DISCORD_APPLICATION_ID";
-    TURN_LIMIT_SECONDS = 20;
-    PRE_BID_DELAY_SECONDS = 6;
+    TURN_LIMIT_SECONDS = 15;
+    PRE_BID_DELAY_SECONDS = 10;
     BOOT_SPLASH_MIN_VISIBLE_MS = 2200;
     ACTION_SPLASH_MIN_VISIBLE_MS = 650;
     STATE_LONG_POLL_WAIT_MS = 2e4;
@@ -28185,6 +28308,13 @@ var init_legacy_app = __esm({
     PING_PROBE_INTERVAL_MS = 3e3;
     PING_STALE_AFTER_MS = 9e3;
     WS_PING_TIMEOUT_MS = 2500;
+    SPLASH_BACKGROUND_PATHS = [
+      "/assets/images/splash/bg_splash_ship_1.jpg",
+      "/assets/images/splash/bg_splash_ship_2.jpg",
+      "/assets/images/splash/bg_splash_ship_3.jpg",
+      "/assets/images/splash/bg_splash_ship_4.jpg",
+      "/assets/images/splash/bg_splash_ship_5.jpg"
+    ];
     CONNECTION_STATUS = Object.freeze({
       CONNECTED: "connected",
       RECONNECTING: "reconnecting",
@@ -28294,6 +28424,7 @@ var init_legacy_app = __esm({
     bidPlusBtn = document.getElementById("bidPlusBtn");
     bidDialogSubmitBtn = document.getElementById("bidDialogSubmitBtn");
     bidDialogHint = document.getElementById("bidDialogHint");
+    bidDialogMeta = document.getElementById("bidDialogMeta");
     interactionHud = document.getElementById("interactionHud");
     interactionHudKicker = document.getElementById("interactionHudKicker");
     interactionHudTitle = document.getElementById("interactionHudTitle");
@@ -28701,7 +28832,7 @@ var init_legacy_app = __esm({
     TURN_TIMER_OPTIONS = [5, 10, 15, 20, 30, 45, 60];
     if (lobbyTurnTimerDown) {
       lobbyTurnTimerDown.addEventListener("click", () => {
-        const cur = Number(appState.game?.settings?.turn_limit_seconds || 20);
+        const cur = Number(appState.game?.settings?.turn_limit_seconds || TURN_LIMIT_SECONDS);
         const idx = TURN_TIMER_OPTIONS.indexOf(cur);
         const next = TURN_TIMER_OPTIONS[Math.max(0, idx - 1)];
         if (next !== cur) postLobbySettings({ turn_limit_seconds: next });
@@ -28709,7 +28840,7 @@ var init_legacy_app = __esm({
     }
     if (lobbyTurnTimerUp) {
       lobbyTurnTimerUp.addEventListener("click", () => {
-        const cur = Number(appState.game?.settings?.turn_limit_seconds || 20);
+        const cur = Number(appState.game?.settings?.turn_limit_seconds || TURN_LIMIT_SECONDS);
         const idx = TURN_TIMER_OPTIONS.indexOf(cur);
         const next = TURN_TIMER_OPTIONS[Math.min(TURN_TIMER_OPTIONS.length - 1, idx + 1)];
         if (next !== cur) postLobbySettings({ turn_limit_seconds: next });
@@ -28893,22 +29024,21 @@ var init_legacy_app = __esm({
   }
 });
 
-// discord_activity_skullking/app/src/main.jsx
-var import_react27 = __toESM(require_react());
+// discord_activity_skullking/app/src/main.tsx
 var import_client = __toESM(require_client());
 var import_react_dom3 = __toESM(require_react_dom());
 
-// discord_activity_skullking/app/src/App.jsx
+// discord_activity_skullking/app/src/App.tsx
 var import_react26 = __toESM(require_react());
 var import_react_dom2 = __toESM(require_react_dom());
 
 // discord_activity_skullking/app/src/shell.html
-var shell_default = '<div id="splash" class="splash" data-splash-mode="boot" data-ready="false" tabindex="0">\n      <div class="splash-ambient" aria-hidden="true">\n        <span class="splash-orb splash-orb-left"></span>\n        <span class="splash-orb splash-orb-right"></span>\n        <span class="splash-wave splash-wave-back"></span>\n        <span class="splash-wave splash-wave-front"></span>\n      </div>\n      <div class="splash-card">\n        <div class="splash-kicker">Legendary Pirate Card Battle</div>\n        <h2>Skull King</h2>\n        <p class="splash-tagline">\uD3ED\uD48D\uC6B0 \uCE58\uB294 \uBC14\uB2E4\uC5D0\uC11C \uC608\uCE21\uACFC \uBC30\uC9F1\uC73C\uB85C \uC655\uAD00\uC744 \uCC28\uC9C0\uD558\uC138\uC694.</p>\n        <p id="splashStatus">\uD56D\uD574 \uC900\uBE44 \uC911...</p>\n        <div class="splash-progress" role="progressbar" aria-label="\uB85C\uB529 \uC9C4\uD589">\n          <span id="splashProgressFill"></span>\n        </div>\n        <div class="splash-progress-meta">\n          <span id="splashPercent">0%</span>\n          <span id="splashDetail">\uD074\uB77C\uC774\uC5B8\uD2B8 \uC900\uBE44 \uC911</span>\n        </div>\n        <button id="splashCta" class="splash-cta" type="button">\n          <span class="splash-cta-pulse" aria-hidden="true"></span>\n          <span id="splashCtaLabel">\uB85C\uB529 \uC911...</span>\n        </button>\n      </div>\n    </div>\n\n    <div id="toast" class="toast hidden"></div>\n\n    <main class="layout">\n      <section id="homePanel" class="panel lobby-home">\n        <input id="nameInput" type="hidden" />\n        <input id="sessionInput" type="hidden" />\n        <div class="screen">\n          <div class="content">\n            <header class="topbar">\n              <div class="top-left">\n                <div class="avatar"></div>\n                <div class="nameblock">\n                  <div class="small" id="topbarIdentityLabel">Connecting</div>\n                  <div class="name" id="topbarDisplayName">Discord User</div>\n                  <div class="badge">Beta Tester</div>\n                </div>\n              </div>\n              <div class="top-right">\n                <div id="homePingChip" class="chip chip-quiet ping-floating">-- ms</div>\n                <div class="iconbtn">\u2709\uFE0F</div>\n                <div class="iconbtn">\u2699\uFE0F</div>\n              </div>\n            </header>\n\n            <main class="main">\n              <aside class="left-actions">\n                <div class="side-card">\n                  <div>\n                    <div class="emoji">\u{1F91D}</div>\n                    <div class="title">\uCE5C\uAD6C \uCD08\uB300</div>\n                    <div class="sub">\uCE5C\uAD6C\uC640 \uAC19\uC740 \uD14C\uC774\uBE14\uC5D0 \uC549\uC544<br> \uBC14\uB85C \uB9E4\uCE58\uB97C \uC2DC\uC791\uD558\uC138\uC694.</div>\n                  </div>\n                  <button class="mini-btn" id="refreshRoomsBtn" type="button">Invite Crew</button>\n                </div>\n              </aside>\n\n              <section class="hero-wrap">\n                <div class="hero-title">\n                  <div class="eyebrow">Skull King \xB7 Season 1 \xB7 Skrrking</div>\n                  <h1>\uC804\uC124\uC758 \uBC14\uB2E4\uC5D0\uC11C<br />\uCE74\uB4DC \uC804\uD22C\uB97C \uC2DC\uC791\uD558\uC138\uC694</h1>\n                  <p>\uC608\uCE21, \uBE14\uB7EC\uD551, \uADF8\uB9AC\uACE0 \uD55C \uBC29\uC758 \uC5ED\uC804</p>\n                </div>\n\n                <div class="portal">\n                  <div class="portal-content">\n                    <div class="cta-row">\n                      <button class="btn btn-secondary" id="createRoomBtn" type="button">Create Room</button>\n                      <button class="btn btn-primary" id="playNowBtn" type="button">Play Now</button>\n                    </div>\n                  </div>\n                </div>\n\n                <footer class="bottom-tray">\n                  <div class="tray-item">\n                    <div class="tray-icon">\u{1F6CD}\uFE0F</div>\n                    <div>\n                      <div class="t1">Shop</div>\n                      <div class="t2">\uBCF4\uB4DC, \uCE74\uB4DC\uBC31, \uC544\uBC14\uD0C0 \uAFB8\uBBF8\uAE30</div>\n                    </div>\n                  </div>\n\n                  <div class="tray-item">\n                    <div class="tray-icon">\u{1F4DC}</div>\n                    <div>\n                      <div class="t1">Quests</div>\n                      <div class="t2">\uC77C\uC77C \uBBF8\uC158\uACFC \uC2DC\uC98C \uBAA9\uD45C \uD655\uC778</div>\n                    </div>\n                  </div>\n\n                  <div class="tray-item">\n                    <div class="tray-icon">\u{1F451}</div>\n                    <div>\n                      <div class="t1">Season Pass</div>\n                      <div class="t2">\uC9C4\uCC99\uB3C4 \uBCF4\uC0C1\uACFC \uD55C\uC815 \uCF54\uC2A4\uBA54\uD2F1</div>\n                    </div>\n                  </div>\n                </footer>\n              </section>\n\n              <aside class="right-column">\n                <div class="notice-card">\n                  <h4>\uC624\uB298\uC758 \uC774\uBCA4\uD2B8</h4>\n                  <div class="event">\n                    <div class="left">\n                      <div class="dot">\u{1F381}</div>\n                      <div>\n                        <div class="t1">Treasure Rush</div>\n                        <div class="t2">\uB7AD\uD06C \uBCF4\uC0C1 2\uBC30 \xB7 5\uC2DC\uAC04 \uB0A8\uC74C</div>\n                      </div>\n                    </div>\n                    <div class="badge">Live</div>\n                  </div>\n                  <div class="event">\n                    <div class="left">\n                      <div class="dot">\u{1F30A}</div>\n                      <div>\n                        <div class="t1">Moon Tide Table</div>\n                        <div class="t2">\uD2B9\uBCC4 \uBCF4\uB4DC \uC2A4\uD0A8 \uACF5\uAC1C</div>\n                      </div>\n                    </div>\n                    <div class="badge">New</div>\n                  </div>\n                </div>\n\n              </aside>\n            </main>\n\n          </div>\n        </div>\n      </section>\n\n      <section id="lobbyPanel" class="panel hidden room-setup">\n        <div class="screen">\n          <div class="topbar">\n            <div class="left">\n              <div class="avatar"></div>\n              <div>\n                <div id="lobbyTopbarIdentityLabel" class="small">Connecting</div>\n                <div id="lobbyTopbarDisplayName" class="name">Discord User</div>\n              </div>\n            </div>\n            <div class="right">\n              <div id="lobbyRoomCode" class="chip">Room Code \xB7 -</div>\n              <div id="lobbyPlayersChip" class="chip">0/6 Players</div>\n              <div class="iconbtn">\u{1F50A}</div>\n              <div class="iconbtn">\u2699\uFE0F</div>\n            </div>\n          </div>\n          <div id="lobbyPingChip" class="chip chip-quiet ping-floating">-- ms</div>\n\n          <div class="room-main">\n            <div class="table-wrap">\n              <div class="table"></div>\n              <div id="playerList"></div>\n            </div>\n\n            <aside class="setup-panel panel">\n              <h3>Room Setup</h3>\n              <div class="col">\n                <div class="section-title">Match Settings</div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">Turn Timer</span>\n                    <span class="setting-help">\uAC01 \uD134\uC758 \uC81C\uD55C \uC2DC\uAC04\uC744 \uC870\uC808\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <div id="lobbyTurnTimerControl" class="stepper-control">\n                    <button class="stepper-btn" id="lobbyTurnTimerDown" type="button">\u2212</button>\n                    <span id="lobbyTurnTimerVal">20s</span>\n                    <button class="stepper-btn" id="lobbyTurnTimerUp" type="button">+</button>\n                  </div>\n                </div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">\uBCF4\uB108\uC2A4 \uC810\uC218</span>\n                    <span class="setting-help">\uBCF4\uB108\uC2A4 \uC810\uC218\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <button id="lobbyBonusToggle" class="toggle-btn" type="button" data-on="false">Off</button>\n                </div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">\uACE0\uAE09 \uB8F0</span>\n                    <span class="setting-help">\uACE0\uAE09\uB8F0\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <button id="lobbyAdvancedToggle" class="toggle-btn" type="button" data-on="false">Off</button>\n                </div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">\uAD00\uC804 \uD5C8\uC6A9</span>\n                    <span class="setting-help">\uAD00\uC804 \uAC00\uB2A5 \uC5EC\uBD80\uB97C \uC124\uC815\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <button id="lobbySpectatorsToggle" class="toggle-btn" type="button" data-on="false">Off</button>\n                </div>\n              </div>\n              <div class="cta-row">\n                <button id="lobbyBackBtn" class="btn secondary" type="button">Back</button>\n                <button id="lobbyInviteBtn" class="btn secondary" type="button">Invite</button>\n                <button id="startBtn" class="btn primary" type="button">Start</button>\n              </div>\n            </aside>\n          </div>\n        </div>\n      </section>\n\n      <section id="gamePanel" class="panel hidden game-stage">\n        <div class="row spread table-top">\n          <h2 id="roundTitle">Round 1</h2>\n          <div class="game-top-actions" aria-label="Game actions">\n            <button id="gameForfeitBtn" class="btn secondary hidden" type="button">\uAE30\uAD8C</button>\n            <button id="nextRoundBtn" class="hidden" type="button">\uB2E4\uC74C \uB77C\uC6B4\uB4DC</button>\n            <div id="gamePingBadge" class="hud-badge ping-badge ping-floating">-- ms</div>\n          </div>\n          <div id="turnProgress" class="turn-progress">\n            <div id="turnProgressFill" class="turn-progress-fill"></div>\n            <div id="turnProgressMeta" class="turn-progress-meta">20s</div>\n          </div>\n        </div>\n\n        <div class="game-mini-topbar">\n          <div id="gameMiniAvatar" class="mini-avatar"></div>\n            <div class="mini-content">\n              <div class="mini-meta">\n                <div id="gameMiniIdentityLabel" class="mini-small">Connecting</div>\n                <div id="gameMiniDisplayName" class="mini-name">Unknown</div>\n              </div>\n              <div class="mini-stats" aria-label="Current player summary">\n                <div class="mini-badge">\n                  <span class="mini-badge-label">Bid</span>\n                  <strong id="gameMiniBidValue" class="mini-badge-value">-</strong>\n                </div>\n                <div class="mini-badge">\n                  <span class="mini-badge-label">Won</span>\n                  <strong id="gameMiniWonValue" class="mini-badge-value">0</strong>\n                </div>\n                <div class="mini-badge mini-badge-score">\n                  <span class="mini-badge-label">Score</span>\n                  <strong id="gameMiniScoreValue" class="mini-badge-value">0</strong>\n                </div>\n              </div>\n            </div>\n          </div>\n\n        <div class="table-wrap">\n          <div class="table-ring"></div>\n          <div id="tableCinematicFx" class="table-cinematic-fx" aria-hidden="true"></div>\n          <div id="playerRing" class="player-ring"></div>\n          <div id="trickCenter" class="trick-center"></div>\n          <div id="reconnectOverlay" class="reconnect-overlay hidden" aria-live="polite">\n            <div class="reconnect-card">\n              <div id="reconnectTitle" class="reconnect-title">Reconnecting</div>\n              <div id="reconnectBody" class="reconnect-body">\uC11C\uBC84 \uC2A4\uB0C5\uC0F7\uC744 \uB2E4\uC2DC \uBC1B\uACE0 \uC788\uC5B4\uC694.</div>\n            </div>\n          </div>\n        </div>\n\n        <div id="interactionHud" class="interaction-hud" aria-live="polite">\n          <div id="interactionHudKicker" class="interaction-hud-kicker">Play Window</div>\n          <div id="interactionHudTitle" class="interaction-hud-title">\uCE74\uB4DC\uB97C \uB04C\uC5B4 \uC911\uC559\uC73C\uB85C \uC62C\uB9AC\uBA74 \uC81C\uCD9C\uB429\uB2C8\uB2E4.</div>\n          <div id="interactionHudBody" class="interaction-hud-body">\uB0B4 \uD134\uC5D0\uB294 \uD569\uBC95 \uCE74\uB4DC\uB9CC \uC0B4\uC544\uB098\uACE0, \uC911\uC559\uC5D0\uC11C \uD604\uC7AC \uC6B0\uC138\uB97C \uBC14\uB85C \uD655\uC778\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.</div>\n        </div>\n\n        <div id="handArea" class="hand table-hand"></div>\n\n        <section class="compact-tools compact-tools-minimal"></section>\n\n        <aside id="scoreDialog" class="drawer panel hidden">\n          <div id="scoreDrawerHeader" class="drawer-header">\n            <h3>Scoreboard</h3>\n            <button id="closeScoreDrawerBtn" type="button" class="close"><span>\u2715</span></button>\n          </div>\n          <div class="tabs">\n            <button id="scoreTabScores" class="tab active" type="button">Scores</button>\n            <button id="scoreTabHistory" class="tab" type="button">History</button>\n            <button id="scoreTabGuide" class="tab" type="button">Guide</button>\n          </div>\n\n          <div id="scoreScoresPanel">\n            <div id="scoreRows"></div>\n          </div>\n\n          <div id="scoreHistoryPanel" class="guide hidden">\n            <strong>Battle History</strong>\n            <div id="scoreHistoryRows" class="log-area"></div>\n          </div>\n\n          <div id="scoreGuidePanel" class="guide hidden">\n            <strong>Card Guide</strong><br />\n            Pirate\uB294 \uC22B\uC790 \uCE74\uB4DC\uB97C \uC774\uAE41\uB2C8\uB2E4. Mermaid\uB294 Skull King\uC5D0 \uAC15\uD569\uB2C8\uB2E4. Escape\uB294 \uC77C\uBC18\uC801\uC73C\uB85C \uD2B8\uB9AD\uC744 \uD3EC\uAE30\uD558\uB294 \uCE74\uB4DC\uC785\uB2C8\uB2E4.\n          </div>\n        </aside>\n      </section>\n    </main>\n\n    <dialog id="tigressDialog" class="modal panel modal-theme">\n      <div class="tigress-shell">\n        <div class="modal-header tigress-header">\n          <div>\n            <div class="tigress-kicker">Mode Choice</div>\n            <div class="modal-title">Tigress \uBAA8\uB4DC \uC120\uD0DD</div>\n            <div class="modal-subtitle">\uC774\uBC88 \uD2B8\uB9AD\uC5D0\uC11C \uC5B4\uB5A4 \uC5BC\uAD74\uB85C \uC2F8\uC6B8\uC9C0 \uACE8\uB77C\uC8FC\uC138\uC694.</div>\n          </div>\n        </div>\n        <div class="tigress-choice-grid">\n          <button data-mode="pirate" type="button" class="tigress-choice tigress-choice-pirate">\n            <span class="tigress-choice-badge">Aggressive</span>\n            <strong class="tigress-choice-title">Pirate</strong>\n            <span class="tigress-choice-body">\uAC15\uD55C \uD2B9\uC218 \uCE74\uB4DC\uB85C \uCDE8\uAE09\uB418\uC5B4 \uC22B\uC790 \uCE74\uB4DC\uB97C \uC555\uBC15\uD569\uB2C8\uB2E4.</span>\n          </button>\n          <button data-mode="escape" type="button" class="tigress-choice tigress-choice-escape">\n            <span class="tigress-choice-badge">Defensive</span>\n            <strong class="tigress-choice-title">Escape</strong>\n            <span class="tigress-choice-body">\uD2B8\uB9AD \uACBD\uC7C1\uC5D0\uC11C \uBE60\uC838\uB098\uC624\uBA70 \uB9AC\uC2A4\uD06C\uB97C \uCD5C\uC18C\uD654\uD569\uB2C8\uB2E4.</span>\n          </button>\n        </div>\n        <div class="tigress-footnote">\uC120\uD0DD \uC989\uC2DC \uCE74\uB4DC \uC81C\uCD9C\uC774 \uD655\uC815\uB429\uB2C8\uB2E4.</div>\n      </div>\n    </dialog>\n\n    <dialog id="createRoomDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">Create Room</div>\n          <div id="createRoomSubtitle" class="modal-subtitle">1\uB2E8\uACC4 \xB7 \uAC8C\uC784 \uBAA8\uB4DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n\n      <div id="createRoomStepMode" class="create-step">\n        <div class="mode-grid mode-grid-2">\n          <button id="createModeCasual" class="mode-card selectable selected" type="button">\n            <div class="mode-icon">\u{1F9ED}</div>\n            <h3>Casual</h3>\n            <p>\uAE30\uBCF8 \uADDC\uCE59\uC73C\uB85C \uBD80\uB2F4 \uC5C6\uC774 \uD50C\uB808\uC774\uD558\uB294 \uC785\uBB38\uD615 \uBAA8\uB4DC.</p>\n            <ul>\n              <li>\uAE30\uBCF8 \uB8F0\uC14B</li>\n              <li>\uBE60\uB978 \uB9E4\uCE58 \uD15C\uD3EC</li>\n              <li>\uCE5C\uAD6C\uBC29 \uD14C\uC2A4\uD2B8 \uAD8C\uC7A5</li>\n            </ul>\n            <div class="spacer"></div>\n            <div class="pill">Default</div>\n          </button>\n\n          <button id="createModeAdvanced" class="mode-card selectable" type="button">\n            <div class="mode-icon">\u2693</div>\n            <h3>Advanced Rule</h3>\n            <p>\uACE0\uAE09 \uB8F0\uC744 \uD65C\uC131\uD654\uD574 \uC804\uB7B5\uC131\uACFC \uBCC0\uC218\uB97C \uD655\uC7A5\uD55C \uBAA8\uB4DC.</p>\n            <ul>\n              <li>\uACE0\uAE09 \uADDC\uCE59 \uD65C\uC131\uD654</li>\n              <li>\uC2EC\uD654 \uC804\uC220 \uD50C\uB808\uC774</li>\n              <li>\uC219\uB828\uC790 \uCD94\uCC9C</li>\n            </ul>\n            <div class="spacer"></div>\n            <div class="pill">Advanced</div>\n          </button>\n        </div>\n\n        <div class="footer-cta">\n          <button id="cancelCreateRoomBtn" class="btn secondary" type="button">\uCDE8\uC18C</button>\n          <button id="createRoomNextBtn" class="btn primary" type="button">\uB2E4\uC74C</button>\n        </div>\n      </div>\n\n      <div id="createRoomStepOptions" class="create-step hidden">\n        <div class="form-grid compact stack-fields">\n          <div class="field">\n            <label for="roomNameInput">\uBC29 \uC774\uB984</label>\n            <input id="roomNameInput" type="text" maxlength="40" value="Skull King Room" />\n          </div>\n          <div class="field">\n            <label for="maxPlayersInput">\uCD5C\uB300 \uC778\uC6D0</label>\n            <input id="maxPlayersInput" type="number" min="2" max="8" value="6" />\n          </div>\n        </div>\n\n        <div class="form-grid compact check-grid">\n          <div class="field inline-check">\n            <label class="option-toggle">\n              <span class="option-toggle-text">\uBCF4\uB108\uC2A4 \uC810\uC218 \uC0AC\uC6A9</span>\n              <input id="bonusEnabledInput" class="option-toggle-input" type="checkbox" />\n              <span class="option-toggle-ui" aria-hidden="true"></span>\n            </label>\n          </div>\n          <div class="field inline-check">\n            <label class="option-toggle">\n              <span class="option-toggle-text">\uACE0\uAE09 \uB8F0 \uC0AC\uC6A9</span>\n              <input id="advancedRulesInput" class="option-toggle-input" type="checkbox" />\n              <span class="option-toggle-ui" aria-hidden="true"></span>\n            </label>\n          </div>\n          <div class="field inline-check">\n            <label class="option-toggle">\n              <span class="option-toggle-text">\uBE44\uBC00\uBC88\uD638 \uC0AC\uC6A9</span>\n              <input id="useRoomPasswordInput" class="option-toggle-input" type="checkbox" />\n              <span class="option-toggle-ui" aria-hidden="true"></span>\n            </label>\n          </div>\n        </div>\n\n        <div id="roomPasswordFieldWrap" class="field hidden">\n          <label for="roomPasswordInput">\uBE44\uBC00\uBC88\uD638</label>\n          <input id="roomPasswordInput" type="password" maxlength="32" placeholder="\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694" />\n        </div>\n\n        <div class="footer-cta">\n          <button id="createRoomBackBtn" class="btn secondary" type="button">\uC774\uC804</button>\n          <button id="confirmCreateRoomBtn" class="btn primary" type="button">\uC0DD\uC131</button>\n        </div>\n      </div>\n    </dialog>\n\n    <dialog id="findRoomDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">Find Room</div>\n          <div class="modal-subtitle">\uC785\uC7A5\uD560 \uD14C\uC774\uBE14\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n      <div id="roomList" class="room-list room-list-modal"></div>\n      <div class="footer-cta">\n        <button id="closeFindRoomBtn" class="btn secondary" type="button">\uB2EB\uAE30</button>\n        <button id="refreshRoomsInModalBtn" class="btn primary" type="button">\uC0C8\uB85C\uACE0\uCE68</button>\n      </div>\n    </dialog>\n\n    <dialog id="joinPasswordDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">Room Password</div>\n          <div class="modal-subtitle">\uBE44\uACF5\uAC1C \uBC29\uC5D0 \uC785\uC7A5\uD558\uB824\uBA74 \uBE44\uBC00\uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.</div>\n        </div>\n      </div>\n      <div class="password-room-chip">\n        <span class="pill">Private Room</span>\n        <strong id="joinPasswordRoomName">Private Room</strong>\n      </div>\n      <div class="field">\n        <label for="joinPasswordInput">\uBE44\uBC00\uBC88\uD638</label>\n        <input id="joinPasswordInput" type="password" maxlength="32" placeholder="\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694" />\n      </div>\n      <div id="joinPasswordError" class="join-password-error hidden"></div>\n      <div class="footer-cta">\n        <button id="joinPasswordCancelBtn" class="btn secondary" type="button">\uCDE8\uC18C</button>\n        <button id="joinPasswordSubmitBtn" class="btn primary" type="button">\uC785\uC7A5</button>\n      </div>\n    </dialog>\n\n    <dialog id="bidDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">\uBE44\uB529</div>\n          <div class="modal-subtitle">\uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0\uC11C \uAC00\uC838\uAC08 \uD2B8\uB9AD \uC218\uB97C \uC608\uCE21\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n      <div id="bidDialogHint" class="bid-round-badge">Round -</div>\n      <div class="bid-picker-row">\n        <button id="bidMinusBtn" type="button" class="bid-step-btn">-</button>\n        <input id="bidDialogInput" class="bid-number" type="number" min="0" />\n        <button id="bidPlusBtn" type="button" class="bid-step-btn">+</button>\n      </div>\n      <div class="bid-actions">\n        <button id="bidDialogSubmitBtn" type="button" class="bid-confirm-btn">\uC81C\uCD9C</button>\n      </div>\n    </dialog>\n\n    <dialog id="eventDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div id="eventDialogTitle" class="modal-title">\uB77C\uC6B4\uB4DC \uACB0\uACFC</div>\n          <div class="modal-subtitle">\uC810\uC218\uC640 \uD2B8\uB9AD \uACB0\uACFC\uB97C \uD655\uC778\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n      <div id="eventDialogBody"></div>\n    </dialog>\n\n    <dialog id="roundResultDialog" class="modal panel modal-theme round-result-modal-theme">\n      <div class="round-result-shell">\n        <div class="round-result-hero">\n          <div class="round-result-kicker">Round Settlement</div>\n          <div class="round-result-header">\n            <div>\n              <div id="roundResultTitle" class="modal-title">Round Result</div>\n              <div class="modal-subtitle">\uC774\uBC88 \uB77C\uC6B4\uB4DC \uC815\uC0B0\uC744 \uD655\uC778\uD558\uC138\uC694.</div>\n            </div>\n            <button id="closeRoundResultBtn" class="round-result-close" type="button">\uB2EB\uAE30</button>\n          </div>\n        </div>\n        <div id="roundResultBody" class="round-result-body"></div>\n      </div>\n    </dialog>\n\n    <dialog id="finishDialog" class="modal panel modal-theme result-modal-theme">\n      <div class="result-modal">\n        <div class="result-hero">\n          <div class="result-header">\n            <div>\n              <div id="finishSummaryText" class="result-kicker">Final Voyage</div>\n              <div id="finishResultTitle" class="result-title">Game Result</div>\n              <div id="finishResultSub" class="result-sub">\uB77C\uC6B4\uB4DC \uC815\uC0B0 \uACB0\uACFC\uB97C \uD655\uC778\uD558\uC138\uC694.</div>\n            </div>\n            <div class="result-badge-stack">\n              <div id="finishResultCoin" class="coin">+0</div>\n              <span id="finishSummaryPill" class="pill">-</span>\n            </div>\n          </div>\n          <div class="finish-hero-scene" aria-hidden="true"></div>\n        </div>\n\n        <div class="summary-banner">\n          <span>\uCD5C\uC885 \uB9AC\uB354\uBCF4\uB4DC</span>\n          <span class="pill">Skull King</span>\n        </div>\n\n        <div class="result-table">\n          <div class="head-label">\n            <div>Rank</div><div>Player</div><div>Bid</div><div>Won</div><div>Delta</div><div>Total</div><div>Status</div>\n          </div>\n          <div id="finishResultRows"></div>\n        </div>\n\n        <div class="events-footer">\n          <div id="finishEventChips" class="event-chips">\n            <div class="pill">Final Scoreboard</div>\n          </div>\n          <div class="inline-actions">\n            <button id="finishToHomeBtn" class="btn secondary" type="button">\uD648\uC73C\uB85C</button>\n            <button id="finishToLobbyBtn" class="btn primary" type="button">\uB2E4\uC2DC\uD558\uAE30</button>\n          </div>\n        </div>\n      </div>\n    </dialog>\n\n    <dialog id="logDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">\uBC30\uD2C0\uB85C\uADF8</div>\n          <div class="modal-subtitle">\uCD5C\uADFC \uC804\uD22C \uAE30\uB85D\uC744 \uD655\uC778\uD558\uC138\uC694.</div>\n        </div>\n        <button id="closeLogBtn" type="button">\uB2EB\uAE30</button>\n      </div>\n      <div id="logArea" class="log-area"></div>\n    </dialog>\n';
+var shell_default = '<div id="splash" class="splash" data-splash-mode="boot" data-ready="false" tabindex="0">\n      <div class="splash-ambient" aria-hidden="true">\n        <span class="splash-orb splash-orb-left"></span>\n        <span class="splash-orb splash-orb-right"></span>\n        <span class="splash-wave splash-wave-back"></span>\n        <span class="splash-wave splash-wave-front"></span>\n      </div>\n      <div class="splash-card">\n        <div class="splash-kicker">Legendary Pirate Card Battle</div>\n        <h2>Skull King</h2>\n        <p class="splash-tagline">\uD3ED\uD48D\uC6B0 \uCE58\uB294 \uBC14\uB2E4\uC5D0\uC11C \uC608\uCE21\uACFC \uBC30\uC9F1\uC73C\uB85C \uC655\uAD00\uC744 \uCC28\uC9C0\uD558\uC138\uC694.</p>\n        <p id="splashStatus">\uD56D\uD574 \uC900\uBE44 \uC911...</p>\n        <div class="splash-progress" role="progressbar" aria-label="\uB85C\uB529 \uC9C4\uD589">\n          <span id="splashProgressFill"></span>\n        </div>\n        <div class="splash-progress-meta">\n          <span id="splashPercent">0%</span>\n          <span id="splashDetail">\uD074\uB77C\uC774\uC5B8\uD2B8 \uC900\uBE44 \uC911</span>\n        </div>\n        <button id="splashCta" class="splash-cta" type="button">\n          <span class="splash-cta-pulse" aria-hidden="true"></span>\n          <span id="splashCtaLabel">\uB85C\uB529 \uC911...</span>\n        </button>\n      </div>\n    </div>\n\n    <div id="toast" class="toast hidden"></div>\n\n    <main class="layout">\n      <section id="homePanel" class="panel lobby-home">\n        <input id="nameInput" type="hidden" />\n        <input id="sessionInput" type="hidden" />\n        <div class="screen">\n          <div class="content">\n            <header class="topbar">\n              <div class="top-left">\n                <div class="avatar"></div>\n                <div class="nameblock">\n                  <div class="small" id="topbarIdentityLabel">Connecting</div>\n                  <div class="name" id="topbarDisplayName">Discord User</div>\n                  <div class="badge">Beta Tester</div>\n                </div>\n              </div>\n              <div class="top-right">\n                <div id="homePingChip" class="chip chip-quiet ping-floating">-- ms</div>\n                <div class="iconbtn">\u2709\uFE0F</div>\n                <div class="iconbtn">\u2699\uFE0F</div>\n              </div>\n            </header>\n\n            <main class="main">\n              <aside class="left-actions">\n                <div class="side-card">\n                  <div>\n                    <div class="emoji">\u{1F91D}</div>\n                    <div class="title">\uCE5C\uAD6C \uCD08\uB300</div>\n                    <div class="sub">\uCE5C\uAD6C\uC640 \uAC19\uC740 \uD14C\uC774\uBE14\uC5D0 \uC549\uC544<br> \uBC14\uB85C \uB9E4\uCE58\uB97C \uC2DC\uC791\uD558\uC138\uC694.</div>\n                  </div>\n                  <button class="mini-btn" id="refreshRoomsBtn" type="button">Invite Crew</button>\n                </div>\n              </aside>\n\n              <section class="hero-wrap">\n                <div class="hero-title">\n                  <div class="eyebrow">Skull King \xB7 Season 1 \xB7 Skrrking</div>\n                  <h1>\uC804\uC124\uC758 \uBC14\uB2E4\uC5D0\uC11C<br />\uCE74\uB4DC \uC804\uD22C\uB97C \uC2DC\uC791\uD558\uC138\uC694</h1>\n                  <p>\uC608\uCE21, \uBE14\uB7EC\uD551, \uADF8\uB9AC\uACE0 \uD55C \uBC29\uC758 \uC5ED\uC804</p>\n                </div>\n\n                <div class="portal">\n                  <div class="portal-content">\n                    <div class="cta-row">\n                      <button class="btn btn-secondary" id="createRoomBtn" type="button">Create Room</button>\n                      <button class="btn btn-primary" id="playNowBtn" type="button">Play Now</button>\n                    </div>\n                  </div>\n                </div>\n\n                <footer class="bottom-tray">\n                  <div class="tray-item">\n                    <div class="tray-icon">\u{1F6CD}\uFE0F</div>\n                    <div>\n                      <div class="t1">Shop</div>\n                      <div class="t2">\uBCF4\uB4DC, \uCE74\uB4DC\uBC31, \uC544\uBC14\uD0C0 \uAFB8\uBBF8\uAE30</div>\n                    </div>\n                  </div>\n\n                  <div class="tray-item">\n                    <div class="tray-icon">\u{1F4DC}</div>\n                    <div>\n                      <div class="t1">Quests</div>\n                      <div class="t2">\uC77C\uC77C \uBBF8\uC158\uACFC \uC2DC\uC98C \uBAA9\uD45C \uD655\uC778</div>\n                    </div>\n                  </div>\n\n                  <div class="tray-item">\n                    <div class="tray-icon">\u{1F451}</div>\n                    <div>\n                      <div class="t1">Season Pass</div>\n                      <div class="t2">\uC9C4\uCC99\uB3C4 \uBCF4\uC0C1\uACFC \uD55C\uC815 \uCF54\uC2A4\uBA54\uD2F1</div>\n                    </div>\n                  </div>\n                </footer>\n              </section>\n\n              <aside class="right-column">\n                <div class="notice-card">\n                  <h4>\uC624\uB298\uC758 \uC774\uBCA4\uD2B8</h4>\n                  <div class="event">\n                    <div class="left">\n                      <div class="dot">\u{1F381}</div>\n                      <div>\n                        <div class="t1">Treasure Rush</div>\n                        <div class="t2">\uB7AD\uD06C \uBCF4\uC0C1 2\uBC30 \xB7 5\uC2DC\uAC04 \uB0A8\uC74C</div>\n                      </div>\n                    </div>\n                    <div class="badge">Live</div>\n                  </div>\n                  <div class="event">\n                    <div class="left">\n                      <div class="dot">\u{1F30A}</div>\n                      <div>\n                        <div class="t1">Moon Tide Table</div>\n                        <div class="t2">\uD2B9\uBCC4 \uBCF4\uB4DC \uC2A4\uD0A8 \uACF5\uAC1C</div>\n                      </div>\n                    </div>\n                    <div class="badge">New</div>\n                  </div>\n                </div>\n\n              </aside>\n            </main>\n\n          </div>\n        </div>\n      </section>\n\n      <section id="lobbyPanel" class="panel hidden room-setup">\n        <div class="screen">\n          <div class="topbar">\n            <div class="left">\n              <div class="avatar"></div>\n              <div>\n                <div id="lobbyTopbarIdentityLabel" class="small">Connecting</div>\n                <div id="lobbyTopbarDisplayName" class="name">Discord User</div>\n              </div>\n            </div>\n            <div class="right">\n              <div id="lobbyRoomCode" class="chip">Room Code \xB7 -</div>\n              <div id="lobbyPlayersChip" class="chip">0/6 Players</div>\n              <div class="iconbtn">\u{1F50A}</div>\n              <div class="iconbtn">\u2699\uFE0F</div>\n            </div>\n          </div>\n          <div id="lobbyPingChip" class="chip chip-quiet ping-floating">-- ms</div>\n\n          <div class="room-main">\n            <div class="table-wrap">\n              <div class="table"></div>\n              <div id="playerList"></div>\n            </div>\n\n            <aside class="setup-panel panel">\n              <h3>Room Setup</h3>\n              <div class="col">\n                <div class="section-title">Match Settings</div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">Turn Timer</span>\n                    <span class="setting-help">\uAC01 \uD134\uC758 \uC81C\uD55C \uC2DC\uAC04\uC744 \uC870\uC808\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <div id="lobbyTurnTimerControl" class="stepper-control">\n                    <button class="stepper-btn" id="lobbyTurnTimerDown" type="button">\u2212</button>\n                    <span id="lobbyTurnTimerVal">15s</span>\n                    <button class="stepper-btn" id="lobbyTurnTimerUp" type="button">+</button>\n                  </div>\n                </div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">\uBCF4\uB108\uC2A4 \uC810\uC218</span>\n                    <span class="setting-help">\uBCF4\uB108\uC2A4 \uC810\uC218\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <button id="lobbyBonusToggle" class="toggle-btn" type="button" data-on="false">Off</button>\n                </div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">\uACE0\uAE09 \uB8F0</span>\n                    <span class="setting-help">\uACE0\uAE09\uB8F0\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <button id="lobbyAdvancedToggle" class="toggle-btn" type="button" data-on="false">Off</button>\n                </div>\n                <div class="row setting-row">\n                  <div class="setting-copy">\n                    <span class="setting-label">\uAD00\uC804 \uD5C8\uC6A9</span>\n                    <span class="setting-help">\uAD00\uC804 \uAC00\uB2A5 \uC5EC\uBD80\uB97C \uC124\uC815\uD569\uB2C8\uB2E4.</span>\n                  </div>\n                  <button id="lobbySpectatorsToggle" class="toggle-btn" type="button" data-on="false">Off</button>\n                </div>\n              </div>\n              <div class="cta-row">\n                <button id="lobbyBackBtn" class="btn secondary" type="button">Back</button>\n                <button id="lobbyInviteBtn" class="btn secondary" type="button">Invite</button>\n                <button id="startBtn" class="btn primary" type="button">Start</button>\n              </div>\n            </aside>\n          </div>\n        </div>\n      </section>\n\n      <section id="gamePanel" class="panel hidden game-stage">\n        <div class="row spread table-top">\n          <h2 id="roundTitle">Round 1</h2>\n          <div class="game-top-actions" aria-label="Game actions">\n            <button id="gameForfeitBtn" class="btn secondary hidden" type="button">\uAE30\uAD8C</button>\n            <button id="nextRoundBtn" class="hidden" type="button">\uB2E4\uC74C \uB77C\uC6B4\uB4DC</button>\n            <div id="gamePingBadge" class="hud-badge ping-badge ping-floating">-- ms</div>\n          </div>\n          <div id="turnProgress" class="turn-progress">\n            <div id="turnProgressFill" class="turn-progress-fill"></div>\n            <div id="turnProgressMeta" class="turn-progress-meta">15s</div>\n          </div>\n        </div>\n\n        <div class="game-mini-topbar">\n          <div id="gameMiniAvatar" class="mini-avatar"></div>\n            <div class="mini-content">\n              <div class="mini-meta">\n                <div id="gameMiniIdentityLabel" class="mini-small">Connecting</div>\n                <div id="gameMiniDisplayName" class="mini-name">Unknown</div>\n              </div>\n              <div class="mini-stats" aria-label="Current player summary">\n                <div class="mini-badge">\n                  <span class="mini-badge-label">Bid</span>\n                  <strong id="gameMiniBidValue" class="mini-badge-value">-</strong>\n                </div>\n                <div class="mini-badge">\n                  <span class="mini-badge-label">Won</span>\n                  <strong id="gameMiniWonValue" class="mini-badge-value">0</strong>\n                </div>\n                <div class="mini-badge mini-badge-score">\n                  <span class="mini-badge-label">Score</span>\n                  <strong id="gameMiniScoreValue" class="mini-badge-value">0</strong>\n                </div>\n              </div>\n            </div>\n          </div>\n\n        <div class="table-wrap">\n          <div class="table-ring"></div>\n          <div id="tableCinematicFx" class="table-cinematic-fx" aria-hidden="true"></div>\n          <div id="playerRing" class="player-ring"></div>\n          <div id="trickCenter" class="trick-center"></div>\n          <div id="reconnectOverlay" class="reconnect-overlay hidden" aria-live="polite">\n            <div class="reconnect-card">\n              <div id="reconnectTitle" class="reconnect-title">Reconnecting</div>\n              <div id="reconnectBody" class="reconnect-body">\uC11C\uBC84 \uC2A4\uB0C5\uC0F7\uC744 \uB2E4\uC2DC \uBC1B\uACE0 \uC788\uC5B4\uC694.</div>\n            </div>\n          </div>\n        </div>\n\n        <div id="interactionHud" class="interaction-hud" aria-live="polite">\n          <div id="interactionHudKicker" class="interaction-hud-kicker">Play Window</div>\n          <div id="interactionHudTitle" class="interaction-hud-title">\uCE74\uB4DC\uB97C \uB04C\uC5B4 \uC911\uC559\uC73C\uB85C \uC62C\uB9AC\uBA74 \uC81C\uCD9C\uB429\uB2C8\uB2E4.</div>\n          <div id="interactionHudBody" class="interaction-hud-body">\uB0B4 \uD134\uC5D0\uB294 \uD569\uBC95 \uCE74\uB4DC\uB9CC \uC0B4\uC544\uB098\uACE0, \uC911\uC559\uC5D0\uC11C \uD604\uC7AC \uC6B0\uC138\uB97C \uBC14\uB85C \uD655\uC778\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.</div>\n        </div>\n\n        <div id="handArea" class="hand table-hand"></div>\n\n        <section class="compact-tools compact-tools-minimal"></section>\n\n        <aside id="scoreDialog" class="drawer panel hidden">\n          <div id="scoreDrawerHeader" class="drawer-header">\n            <h3>Scoreboard</h3>\n            <button id="closeScoreDrawerBtn" type="button" class="close"><span>\u2715</span></button>\n          </div>\n          <div class="tabs">\n            <button id="scoreTabScores" class="tab active" type="button">Scores</button>\n            <button id="scoreTabHistory" class="tab" type="button">History</button>\n            <button id="scoreTabGuide" class="tab" type="button">Guide</button>\n          </div>\n\n          <div id="scoreScoresPanel">\n            <div id="scoreRows"></div>\n          </div>\n\n          <div id="scoreHistoryPanel" class="guide hidden">\n            <strong>Battle History</strong>\n            <div id="scoreHistoryRows" class="log-area"></div>\n          </div>\n\n          <div id="scoreGuidePanel" class="guide hidden">\n            <strong>Card Guide</strong><br />\n            Pirate\uB294 \uC22B\uC790 \uCE74\uB4DC\uB97C \uC774\uAE41\uB2C8\uB2E4. Mermaid\uB294 Skull King\uC5D0 \uAC15\uD569\uB2C8\uB2E4. Escape\uB294 \uC77C\uBC18\uC801\uC73C\uB85C \uD2B8\uB9AD\uC744 \uD3EC\uAE30\uD558\uB294 \uCE74\uB4DC\uC785\uB2C8\uB2E4.\n          </div>\n        </aside>\n      </section>\n    </main>\n\n    <dialog id="tigressDialog" class="modal panel modal-theme">\n      <div class="tigress-shell">\n        <div class="modal-header tigress-header">\n          <div>\n            <div class="tigress-kicker">Mode Choice</div>\n            <div class="modal-title">Tigress \uBAA8\uB4DC \uC120\uD0DD</div>\n            <div class="modal-subtitle">\uC774\uBC88 \uD2B8\uB9AD\uC5D0\uC11C \uC5B4\uB5A4 \uC5BC\uAD74\uB85C \uC2F8\uC6B8\uC9C0 \uACE8\uB77C\uC8FC\uC138\uC694.</div>\n          </div>\n        </div>\n        <div class="tigress-choice-grid">\n          <button data-mode="pirate" type="button" class="tigress-choice tigress-choice-pirate">\n            <span class="tigress-choice-badge">Aggressive</span>\n            <strong class="tigress-choice-title">Pirate</strong>\n            <span class="tigress-choice-body">\uAC15\uD55C \uD2B9\uC218 \uCE74\uB4DC\uB85C \uCDE8\uAE09\uB418\uC5B4 \uC22B\uC790 \uCE74\uB4DC\uB97C \uC555\uBC15\uD569\uB2C8\uB2E4.</span>\n          </button>\n          <button data-mode="escape" type="button" class="tigress-choice tigress-choice-escape">\n            <span class="tigress-choice-badge">Defensive</span>\n            <strong class="tigress-choice-title">Escape</strong>\n            <span class="tigress-choice-body">\uD2B8\uB9AD \uACBD\uC7C1\uC5D0\uC11C \uBE60\uC838\uB098\uC624\uBA70 \uB9AC\uC2A4\uD06C\uB97C \uCD5C\uC18C\uD654\uD569\uB2C8\uB2E4.</span>\n          </button>\n        </div>\n        <div class="tigress-footnote">\uC120\uD0DD \uC989\uC2DC \uCE74\uB4DC \uC81C\uCD9C\uC774 \uD655\uC815\uB429\uB2C8\uB2E4.</div>\n      </div>\n    </dialog>\n\n    <dialog id="createRoomDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">Create Room</div>\n          <div id="createRoomSubtitle" class="modal-subtitle">1\uB2E8\uACC4 \xB7 \uAC8C\uC784 \uBAA8\uB4DC\uB97C \uC120\uD0DD\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n\n      <div id="createRoomStepMode" class="create-step">\n        <div class="mode-grid mode-grid-2">\n          <button id="createModeCasual" class="mode-card selectable selected" type="button">\n            <div class="mode-icon">\u{1F9ED}</div>\n            <h3>Casual</h3>\n            <p>\uAE30\uBCF8 \uADDC\uCE59\uC73C\uB85C \uBD80\uB2F4 \uC5C6\uC774 \uD50C\uB808\uC774\uD558\uB294 \uC785\uBB38\uD615 \uBAA8\uB4DC.</p>\n            <ul>\n              <li>\uAE30\uBCF8 \uB8F0\uC14B</li>\n              <li>\uBE60\uB978 \uB9E4\uCE58 \uD15C\uD3EC</li>\n              <li>\uCE5C\uAD6C\uBC29 \uD14C\uC2A4\uD2B8 \uAD8C\uC7A5</li>\n            </ul>\n            <div class="spacer"></div>\n            <div class="pill">Default</div>\n          </button>\n\n          <button id="createModeAdvanced" class="mode-card selectable" type="button">\n            <div class="mode-icon">\u2693</div>\n            <h3>Advanced Rule</h3>\n            <p>\uACE0\uAE09 \uB8F0\uC744 \uD65C\uC131\uD654\uD574 \uC804\uB7B5\uC131\uACFC \uBCC0\uC218\uB97C \uD655\uC7A5\uD55C \uBAA8\uB4DC.</p>\n            <ul>\n              <li>\uACE0\uAE09 \uADDC\uCE59 \uD65C\uC131\uD654</li>\n              <li>\uC2EC\uD654 \uC804\uC220 \uD50C\uB808\uC774</li>\n              <li>\uC219\uB828\uC790 \uCD94\uCC9C</li>\n            </ul>\n            <div class="spacer"></div>\n            <div class="pill">Advanced</div>\n          </button>\n        </div>\n\n        <div class="footer-cta">\n          <button id="cancelCreateRoomBtn" class="btn secondary" type="button">\uCDE8\uC18C</button>\n          <button id="createRoomNextBtn" class="btn primary" type="button">\uB2E4\uC74C</button>\n        </div>\n      </div>\n\n      <div id="createRoomStepOptions" class="create-step hidden">\n        <div class="form-grid compact stack-fields">\n          <div class="field">\n            <label for="roomNameInput">\uBC29 \uC774\uB984</label>\n            <input id="roomNameInput" type="text" maxlength="40" value="Skull King Room" />\n          </div>\n          <div class="field">\n            <label for="maxPlayersInput">\uCD5C\uB300 \uC778\uC6D0</label>\n            <input id="maxPlayersInput" type="number" min="2" max="8" value="6" />\n          </div>\n        </div>\n\n        <div class="form-grid compact check-grid">\n          <div class="field inline-check">\n            <label class="option-toggle">\n              <span class="option-toggle-text">\uBCF4\uB108\uC2A4 \uC810\uC218 \uC0AC\uC6A9</span>\n              <input id="bonusEnabledInput" class="option-toggle-input" type="checkbox" />\n              <span class="option-toggle-ui" aria-hidden="true"></span>\n            </label>\n          </div>\n          <div class="field inline-check">\n            <label class="option-toggle">\n              <span class="option-toggle-text">\uACE0\uAE09 \uB8F0 \uC0AC\uC6A9</span>\n              <input id="advancedRulesInput" class="option-toggle-input" type="checkbox" />\n              <span class="option-toggle-ui" aria-hidden="true"></span>\n            </label>\n          </div>\n          <div class="field inline-check">\n            <label class="option-toggle">\n              <span class="option-toggle-text">\uBE44\uBC00\uBC88\uD638 \uC0AC\uC6A9</span>\n              <input id="useRoomPasswordInput" class="option-toggle-input" type="checkbox" />\n              <span class="option-toggle-ui" aria-hidden="true"></span>\n            </label>\n          </div>\n        </div>\n\n        <div id="roomPasswordFieldWrap" class="field hidden">\n          <label for="roomPasswordInput">\uBE44\uBC00\uBC88\uD638</label>\n          <input id="roomPasswordInput" type="password" maxlength="32" placeholder="\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694" />\n        </div>\n\n        <div class="footer-cta">\n          <button id="createRoomBackBtn" class="btn secondary" type="button">\uC774\uC804</button>\n          <button id="confirmCreateRoomBtn" class="btn primary" type="button">\uC0DD\uC131</button>\n        </div>\n      </div>\n    </dialog>\n\n    <dialog id="findRoomDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">Find Room</div>\n          <div class="modal-subtitle">\uC785\uC7A5\uD560 \uD14C\uC774\uBE14\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n      <div id="roomList" class="room-list room-list-modal"></div>\n      <div class="footer-cta">\n        <button id="closeFindRoomBtn" class="btn secondary" type="button">\uB2EB\uAE30</button>\n        <button id="refreshRoomsInModalBtn" class="btn primary" type="button">\uC0C8\uB85C\uACE0\uCE68</button>\n      </div>\n    </dialog>\n\n    <dialog id="joinPasswordDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">Room Password</div>\n          <div class="modal-subtitle">\uBE44\uACF5\uAC1C \uBC29\uC5D0 \uC785\uC7A5\uD558\uB824\uBA74 \uBE44\uBC00\uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.</div>\n        </div>\n      </div>\n      <div class="password-room-chip">\n        <span class="pill">Private Room</span>\n        <strong id="joinPasswordRoomName">Private Room</strong>\n      </div>\n      <div class="field">\n        <label for="joinPasswordInput">\uBE44\uBC00\uBC88\uD638</label>\n        <input id="joinPasswordInput" type="password" maxlength="32" placeholder="\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694" />\n      </div>\n      <div id="joinPasswordError" class="join-password-error hidden"></div>\n      <div class="footer-cta">\n        <button id="joinPasswordCancelBtn" class="btn secondary" type="button">\uCDE8\uC18C</button>\n        <button id="joinPasswordSubmitBtn" class="btn primary" type="button">\uC785\uC7A5</button>\n      </div>\n    </dialog>\n\n    <dialog id="bidDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">\uBE44\uB529</div>\n          <div class="modal-subtitle">\uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0\uC11C \uAC00\uC838\uAC08 \uD2B8\uB9AD \uC218\uB97C \uC608\uCE21\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n      <div id="bidDialogHint" class="bid-round-badge">Round -</div>\n      <div id="bidDialogMeta" class="bid-dialog-meta">\uD578\uB4DC \uD655\uC778 \uD6C4 15\uCD08 \uC548\uC5D0 \uBE44\uB529</div>\n      <div class="bid-picker-row">\n        <button id="bidMinusBtn" type="button" class="bid-step-btn">-</button>\n        <input id="bidDialogInput" class="bid-number" type="number" min="0" />\n        <button id="bidPlusBtn" type="button" class="bid-step-btn">+</button>\n      </div>\n      <div class="bid-actions">\n        <button id="bidDialogSubmitBtn" type="button" class="bid-confirm-btn">\uC81C\uCD9C</button>\n      </div>\n    </dialog>\n\n    <dialog id="eventDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div id="eventDialogTitle" class="modal-title">\uB77C\uC6B4\uB4DC \uACB0\uACFC</div>\n          <div class="modal-subtitle">\uC810\uC218\uC640 \uD2B8\uB9AD \uACB0\uACFC\uB97C \uD655\uC778\uD558\uC138\uC694.</div>\n        </div>\n      </div>\n      <div id="eventDialogBody"></div>\n    </dialog>\n\n    <dialog id="roundResultDialog" class="modal panel modal-theme round-result-modal-theme">\n      <div class="round-result-shell">\n        <div class="round-result-hero">\n          <div class="round-result-kicker">Round Settlement</div>\n          <div class="round-result-header">\n            <div>\n              <div id="roundResultTitle" class="modal-title">Round Result</div>\n              <div class="modal-subtitle">\uC774\uBC88 \uB77C\uC6B4\uB4DC \uC815\uC0B0\uC744 \uD655\uC778\uD558\uC138\uC694.</div>\n            </div>\n            <button id="closeRoundResultBtn" class="round-result-close" type="button">\uB2EB\uAE30</button>\n          </div>\n        </div>\n        <div id="roundResultBody" class="round-result-body"></div>\n      </div>\n    </dialog>\n\n    <dialog id="finishDialog" class="modal panel modal-theme result-modal-theme">\n      <div class="result-modal">\n        <div class="result-hero">\n          <div class="result-header">\n            <div>\n              <div id="finishSummaryText" class="result-kicker">Final Voyage</div>\n              <div id="finishResultTitle" class="result-title">Game Result</div>\n              <div id="finishResultSub" class="result-sub">\uB77C\uC6B4\uB4DC \uC815\uC0B0 \uACB0\uACFC\uB97C \uD655\uC778\uD558\uC138\uC694.</div>\n            </div>\n            <div class="result-badge-stack">\n              <div id="finishResultCoin" class="coin">+0</div>\n              <span id="finishSummaryPill" class="pill">-</span>\n            </div>\n          </div>\n          <div class="finish-hero-scene" aria-hidden="true"></div>\n        </div>\n\n        <div class="summary-banner">\n          <span>\uCD5C\uC885 \uB9AC\uB354\uBCF4\uB4DC</span>\n          <span class="pill">Skull King</span>\n        </div>\n\n        <div class="result-table">\n          <div class="head-label">\n            <div>Rank</div><div>Player</div><div>Bid</div><div>Won</div><div>Delta</div><div>Total</div><div>Status</div>\n          </div>\n          <div id="finishResultRows"></div>\n        </div>\n\n        <div class="events-footer">\n          <div id="finishEventChips" class="event-chips">\n            <div class="pill">Final Scoreboard</div>\n          </div>\n          <div class="inline-actions">\n            <button id="finishToHomeBtn" class="btn secondary" type="button">\uD648\uC73C\uB85C</button>\n            <button id="finishToLobbyBtn" class="btn primary" type="button">\uB2E4\uC2DC\uD558\uAE30</button>\n          </div>\n        </div>\n      </div>\n    </dialog>\n\n    <dialog id="logDialog" class="modal panel modal-theme">\n      <div class="modal-header">\n        <div>\n          <div class="modal-title">\uBC30\uD2C0\uB85C\uADF8</div>\n          <div class="modal-subtitle">\uCD5C\uADFC \uC804\uD22C \uAE30\uB85D\uC744 \uD655\uC778\uD558\uC138\uC694.</div>\n        </div>\n        <button id="closeLogBtn" type="button">\uB2EB\uAE30</button>\n      </div>\n      <div id="logArea" class="log-area"></div>\n    </dialog>\n';
 
-// discord_activity_skullking/app/src/App.jsx
+// discord_activity_skullking/app/src/App.tsx
 init_legacyBridge();
 
-// discord_activity_skullking/app/src/cardEffects/CardEffectLayer.jsx
+// discord_activity_skullking/app/src/cardEffects/CardEffectLayer.tsx
 var import_react25 = __toESM(require_react());
 var import_react_dom = __toESM(require_react_dom());
 
@@ -37619,8 +37749,9 @@ function useReducedMotion() {
   return shouldReduceMotion;
 }
 
-// discord_activity_skullking/app/src/cardEffects/effectPresets.js
+// discord_activity_skullking/app/src/cardEffects/effectPresets.ts
 var BASE_PRESET = {
+  effectType: "default",
   themeClass: "default",
   flashColor: "rgba(255, 236, 173, 0.82)",
   auraColors: ["#ffe9a8", "#f1b347", "#ffffff"],
@@ -37638,21 +37769,28 @@ var BASE_PRESET = {
   moveEase: [0.18, 0.88, 0.22, 1],
   impactRing: true,
   resultGlow: "gold",
-  emblem: "none"
+  emblem: "none",
+  arcLift: 72
 };
 var CARD_EFFECT_PRESETS = {
   default: BASE_PRESET,
   suit: {
     ...BASE_PRESET,
+    effectType: "suit",
     themeClass: "suit",
     flashColor: "rgba(255, 243, 194, 0.7)",
     auraColors: ["#ffe39d", "#d4a73c", "#fff5d5"],
     particleCount: 8,
     travelScale: 1.14,
-    totalDuration: 1.2
+    arrivalScale: 1.02,
+    moveDuration: 0.4,
+    totalDuration: 1.2,
+    impactRing: false,
+    arcLift: 46
   },
   pirate: {
     ...BASE_PRESET,
+    effectType: "pirate",
     themeClass: "pirate",
     flashColor: "rgba(255, 114, 82, 0.84)",
     auraColors: ["#ffb567", "#ff5f47", "#ffe2c6"],
@@ -37667,10 +37805,12 @@ var CARD_EFFECT_PRESETS = {
     resolveDelay: 0.48,
     totalDuration: 1.26,
     resultGlow: "ember",
-    emblem: "slash"
+    emblem: "slash",
+    arcLift: 86
   },
   mermaid: {
     ...BASE_PRESET,
+    effectType: "mermaid",
     themeClass: "mermaid",
     flashColor: "rgba(109, 211, 255, 0.72)",
     auraColors: ["#b0f2ff", "#54b8ff", "#dffcff"],
@@ -37683,10 +37823,12 @@ var CARD_EFFECT_PRESETS = {
     resolveDelay: 0.56,
     totalDuration: 1.46,
     resultGlow: "sea",
-    emblem: "wave"
+    emblem: "wave",
+    arcLift: 80
   },
   escape: {
     ...BASE_PRESET,
+    effectType: "escape",
     themeClass: "escape",
     flashColor: "rgba(210, 224, 255, 0.52)",
     auraColors: ["#f5f7ff", "#afc8ff", "#e7edff"],
@@ -37699,10 +37841,76 @@ var CARD_EFFECT_PRESETS = {
     moveDuration: 0.3,
     resolveDelay: 0.34,
     totalDuration: 0.96,
-    resultGlow: "mist"
+    resultGlow: "mist",
+    impactRing: false,
+    arcLift: 38
+  },
+  tigress: {
+    ...BASE_PRESET,
+    effectType: "tigress",
+    themeClass: "tigress",
+    flashColor: "rgba(255, 196, 82, 0.9)",
+    auraColors: ["#ffe8a6", "#ffb347", "#fff8e1"],
+    dimBackground: true,
+    shakeStrength: "medium",
+    particleStyle: "slash",
+    particleCount: 14,
+    particleSpread: 174,
+    travelScale: 1.24,
+    arrivalScale: 1.07,
+    rotation: -7,
+    moveDuration: 0.44,
+    resolveDelay: 0.54,
+    totalDuration: 1.38,
+    resultGlow: "shock",
+    emblem: "slash",
+    arcLift: 92
+  },
+  kraken: {
+    ...BASE_PRESET,
+    effectType: "kraken",
+    themeClass: "kraken",
+    flashColor: "rgba(109, 235, 220, 0.86)",
+    auraColors: ["#b4fff4", "#4bd7cb", "#e4fffb"],
+    dimBackground: true,
+    shakeStrength: "heavy",
+    particleStyle: "water",
+    particleCount: 18,
+    particleSpread: 178,
+    travelScale: 1.28,
+    arrivalScale: 1.08,
+    rotation: 4,
+    moveDuration: 0.5,
+    resolveDelay: 0.62,
+    totalDuration: 1.58,
+    resultGlow: "sea",
+    emblem: "wave",
+    arcLift: 96
+  },
+  white_whale: {
+    ...BASE_PRESET,
+    effectType: "white_whale",
+    themeClass: "white-whale",
+    flashColor: "rgba(215, 245, 255, 0.92)",
+    auraColors: ["#f0fbff", "#9fdfff", "#ffffff"],
+    dimBackground: true,
+    shakeStrength: "heavy",
+    particleStyle: "mist",
+    particleCount: 16,
+    particleSpread: 182,
+    travelScale: 1.26,
+    arrivalScale: 1.08,
+    rotation: -3,
+    moveDuration: 0.52,
+    resolveDelay: 0.64,
+    totalDuration: 1.62,
+    resultGlow: "sea",
+    emblem: "wave",
+    arcLift: 104
   },
   skull_king: {
     ...BASE_PRESET,
+    effectType: "skull_king",
     themeClass: "skull-king",
     flashColor: "rgba(255, 208, 92, 0.92)",
     auraColors: ["#ffd76a", "#9f61ff", "#fff1bf"],
@@ -37719,10 +37927,12 @@ var CARD_EFFECT_PRESETS = {
     totalDuration: 1.72,
     moveEase: [0.16, 0.96, 0.22, 1],
     resultGlow: "legendary",
-    emblem: "crown"
+    emblem: "crown",
+    arcLift: 110
   },
   special: {
     ...BASE_PRESET,
+    effectType: "special",
     themeClass: "special",
     flashColor: "rgba(255, 231, 130, 0.9)",
     auraColors: ["#fff0a8", "#ff8b5e", "#ffffff"],
@@ -37757,13 +37967,22 @@ function inferEffectType(card = {}) {
   if (safeType.includes("escape") || safeType.includes("run")) {
     return "escape";
   }
-  if (safeType.includes("kraken") || safeType.includes("whale") || safeType.includes("tigress") || safeType.includes("special")) {
+  if (safeType.includes("tigress")) {
+    return "tigress";
+  }
+  if (safeType.includes("kraken")) {
+    return "kraken";
+  }
+  if (safeType.includes("whale")) {
+    return "white_whale";
+  }
+  if (safeType.includes("special")) {
     return "special";
   }
   if (safeType.includes("suit") || safeType.includes("number")) {
     return "suit";
   }
-  return CARD_EFFECT_PRESETS[safeType] ? safeType : "default";
+  return safeType in CARD_EFFECT_PRESETS ? safeType : "default";
 }
 function resolveCardEffectPreset(effectType, card = {}) {
   const resolvedType = effectType || inferEffectType(card);
@@ -37774,8 +37993,11 @@ function resolveCardEffectPreset(effectType, card = {}) {
   };
 }
 
-// discord_activity_skullking/app/src/cardEffects/effectBus.js
+// discord_activity_skullking/app/src/cardEffects/effectBus.ts
 var CARD_EFFECT_EVENT = "skullking:card-effect";
+function isCardEffectPayload(detail) {
+  return Boolean(detail && "preset" in detail && "id" in detail);
+}
 function findElement(value) {
   if (!value) {
     return null;
@@ -37789,11 +38011,11 @@ function findElement(value) {
   return null;
 }
 function rectFromElement(element) {
-  if (!element?.getBoundingClientRect) {
+  if (!(element instanceof Element) || typeof element.getBoundingClientRect !== "function") {
     return null;
   }
   const rect = element.getBoundingClientRect();
-  if (!rect?.width || !rect?.height) {
+  if (!rect.width || !rect.height) {
     return null;
   }
   return {
@@ -37803,10 +38025,39 @@ function rectFromElement(element) {
     height: rect.height
   };
 }
-function centerRectFromBoard(boardRect, size = 0.22) {
+function normalizeAspectRatio(rawAspectRatio) {
+  const numeric = Number(rawAspectRatio);
+  if (!Number.isFinite(numeric) || numeric < 0.45 || numeric > 0.85) {
+    return 0.64;
+  }
+  return numeric;
+}
+function fitRectToAspect(rect, aspectRatio2) {
+  if (!rect) {
+    return rect;
+  }
+  const safeAspectRatio = normalizeAspectRatio(aspectRatio2);
+  const centerX = rect.left + rect.width * 0.5;
+  const centerY = rect.top + rect.height * 0.5;
+  const rectAspectRatio = rect.width / Math.max(1, rect.height);
+  let width = rect.width;
+  let height = rect.height;
+  if (!Number.isFinite(rectAspectRatio) || rectAspectRatio > safeAspectRatio) {
+    width = height * safeAspectRatio;
+  } else {
+    height = width / safeAspectRatio;
+  }
+  return {
+    left: centerX - width * 0.5,
+    top: centerY - height * 0.5,
+    width,
+    height
+  };
+}
+function centerRectFromBoard(boardRect, size = 0.22, aspectRatio2 = 0.64) {
   if (!boardRect) {
     const width2 = 96;
-    const height2 = 136;
+    const height2 = width2 / normalizeAspectRatio(aspectRatio2);
     return {
       left: window.innerWidth * 0.5 - width2 * 0.5,
       top: window.innerHeight * 0.48 - height2 * 0.5,
@@ -37815,7 +38066,7 @@ function centerRectFromBoard(boardRect, size = 0.22) {
     };
   }
   const width = Math.max(88, boardRect.width * size);
-  const height = width * 1.42;
+  const height = width / normalizeAspectRatio(aspectRatio2);
   return {
     left: boardRect.left + boardRect.width * 0.5 - width * 0.5,
     top: boardRect.top + boardRect.height * 0.52 - height * 0.5,
@@ -37883,12 +38134,14 @@ function buildCardEffectPayload({
   const targetNode = findElement(targetElement) || findElement(targetSelector);
   const highlightNode = findElement(highlightElement) || findElement(highlightSelector);
   const safeBoardRect = boardRect || rectFromElement(boardNode);
-  const safeSourceRect = sourceRect || rectFromElement(sourceNode) || centerRectFromBoard(safeBoardRect, 0.18);
+  const rawSourceRect = sourceRect || rectFromElement(sourceNode) || centerRectFromBoard(safeBoardRect, 0.18);
+  const cardAspectRatio = normalizeAspectRatio(rawSourceRect?.width / Math.max(1, rawSourceRect?.height || 1));
+  const safeSourceRect = fitRectToAspect(rawSourceRect, cardAspectRatio) || centerRectFromBoard(safeBoardRect, 0.18);
   const targetNodeRect = targetRect || rectFromElement(targetNode);
-  const rawTargetRect = safeBoardRect && targetNodeRect && targetNodeRect.width > safeBoardRect.width * 0.38 ? centerRectFromBoard(safeBoardRect) : targetNodeRect || centerRectFromBoard(safeBoardRect);
-  const safeTargetRect = clampRectToBoard(rawTargetRect, safeBoardRect, 26);
+  const rawTargetRect = safeBoardRect && targetNodeRect && targetNodeRect.width > safeBoardRect.width * 0.38 ? centerRectFromBoard(safeBoardRect, 0.22, cardAspectRatio) : targetNodeRect || centerRectFromBoard(safeBoardRect, 0.22, cardAspectRatio);
+  const safeTargetRect = fitRectToAspect(clampRectToBoard(rawTargetRect, safeBoardRect, 26), cardAspectRatio) || centerRectFromBoard(safeBoardRect, 0.22, cardAspectRatio);
   const rawHighlightRect = highlightRect || rectFromElement(highlightNode) || safeTargetRect;
-  const safeHighlightRect = clampRectToBoard(rawHighlightRect, safeBoardRect, 20);
+  const safeHighlightRect = fitRectToAspect(clampRectToBoard(rawHighlightRect, safeBoardRect, 20), cardAspectRatio) || safeTargetRect;
   return {
     id: `fx-${Date.now()}-${Math.round(Math.random() * 1e5)}`,
     card,
@@ -37898,9 +38151,10 @@ function buildCardEffectPayload({
     sourceRect: safeSourceRect,
     targetRect: safeTargetRect,
     highlightRect: safeHighlightRect,
+    cardAspectRatio,
     sourceMarkup: sourceNode?.outerHTML || "",
-    sourceInnerHtml: sourceNode?.innerHTML || "",
-    sourceClassName: sanitizeSourceClassName(sourceNode?.className || ""),
+    sourceInnerHtml: sourceNode instanceof Element ? sourceNode.innerHTML : "",
+    sourceClassName: sanitizeSourceClassName(sourceNode instanceof Element ? sourceNode.className : ""),
     result,
     boardSelector,
     highlightSelector: typeof highlightSelector === "string" ? highlightSelector : null
@@ -37910,7 +38164,7 @@ function emitCardEffect(detail) {
   if (typeof window === "undefined") {
     return null;
   }
-  const payload = detail?.preset ? detail : buildCardEffectPayload(detail);
+  const payload = isCardEffectPayload(detail) ? detail : buildCardEffectPayload(detail || {});
   window.dispatchEvent(new CustomEvent(CARD_EFFECT_EVENT, { detail: payload }));
   return payload;
 }
@@ -37920,7 +38174,8 @@ function onCardEffect(listener) {
     };
   }
   const handler = (event) => {
-    listener(event.detail);
+    const customEvent = event;
+    listener(customEvent.detail);
   };
   window.addEventListener(CARD_EFFECT_EVENT, handler);
   return () => window.removeEventListener(CARD_EFFECT_EVENT, handler);
@@ -37929,7 +38184,11 @@ function installCardEffectBridge() {
   if (typeof window === "undefined") {
     return null;
   }
+  const root2 = typeof document !== "undefined" ? document.documentElement : null;
   if (window.SkullKingFX) {
+    if (root2) {
+      root2.dataset.skullkingFxBridge = "ready";
+    }
     return window.SkullKingFX;
   }
   window.SkullKingFX = {
@@ -37939,10 +38198,14 @@ function installCardEffectBridge() {
     inferEffectType,
     resolveCardEffectPreset
   };
+  if (root2) {
+    root2.dataset.skullkingFxBridge = "ready";
+  }
   return window.SkullKingFX;
 }
 
-// discord_activity_skullking/app/src/cardEffects/CardEffectLayer.jsx
+// discord_activity_skullking/app/src/cardEffects/CardEffectLayer.tsx
+var import_jsx_runtime6 = __toESM(require_jsx_runtime());
 function clamp2(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -37969,46 +38232,64 @@ function resolveLiveHighlightClass(glow) {
   return classNames("card-fx-live-highlight", glow && `is-${glow}`);
 }
 function CardFallback({ effect }) {
-  return /* @__PURE__ */ import_react25.default.createElement("div", { className: classNames("card-fx-fallback", `type-${effect.effectType}`) }, /* @__PURE__ */ import_react25.default.createElement("span", { className: "card-fx-fallback-kicker" }, effect.effectType.replace(/_/g, " ")), /* @__PURE__ */ import_react25.default.createElement("strong", null, effect.label));
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: classNames("card-fx-fallback", `type-${effect.effectType}`), children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "card-fx-fallback-kicker", children: effect.effectType.replace(/_/g, " ") }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("strong", { children: effect.label })
+  ] });
 }
 function CardClone({ effect }) {
   if (effect.sourceInnerHtml) {
-    return /* @__PURE__ */ import_react25.default.createElement("div", { className: "card-fx-clone" }, /* @__PURE__ */ import_react25.default.createElement(
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "card-fx-clone", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
       "div",
       {
         className: classNames("card-fx-origin-card", effect.sourceClassName || `type-${effect.effectType}`),
         dangerouslySetInnerHTML: { __html: effect.sourceInnerHtml }
       }
-    ));
+    ) });
   }
-  return /* @__PURE__ */ import_react25.default.createElement(CardFallback, { effect });
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(CardFallback, { effect });
 }
 function CrownEmblem() {
-  return /* @__PURE__ */ import_react25.default.createElement("svg", { viewBox: "0 0 120 80", className: "card-fx-emblem card-fx-emblem-crown", "aria-hidden": "true" }, /* @__PURE__ */ import_react25.default.createElement("path", { d: "M12 60 26 24l20 16 14-24 14 24 20-16 14 36Z" }), /* @__PURE__ */ import_react25.default.createElement("path", { d: "M18 62h84" }), /* @__PURE__ */ import_react25.default.createElement("circle", { cx: "26", cy: "24", r: "4" }), /* @__PURE__ */ import_react25.default.createElement("circle", { cx: "60", cy: "16", r: "4" }), /* @__PURE__ */ import_react25.default.createElement("circle", { cx: "94", cy: "24", r: "4" }));
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { viewBox: "0 0 120 80", className: "card-fx-emblem card-fx-emblem-crown", "aria-hidden": "true", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M12 60 26 24l20 16 14-24 14 24 20-16 14 36Z" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M18 62h84" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "26", cy: "24", r: "4" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "60", cy: "16", r: "4" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "94", cy: "24", r: "4" })
+  ] });
 }
 function WaveEmblem() {
-  return /* @__PURE__ */ import_react25.default.createElement("svg", { viewBox: "0 0 180 56", className: "card-fx-emblem card-fx-emblem-wave", "aria-hidden": "true" }, /* @__PURE__ */ import_react25.default.createElement("path", { d: "M6 32c18 0 18-16 36-16s18 16 36 16 18-16 36-16 18 16 36 16 18-16 36-16" }), /* @__PURE__ */ import_react25.default.createElement("path", { d: "M6 42c18 0 18-12 36-12s18 12 36 12 18-12 36-12 18 12 36 12 18-12 36-12" }));
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { viewBox: "0 0 180 56", className: "card-fx-emblem card-fx-emblem-wave", "aria-hidden": "true", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M6 32c18 0 18-16 36-16s18 16 36 16 18-16 36-16 18 16 36 16 18-16 36-16" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M6 42c18 0 18-12 36-12s18 12 36 12 18-12 36-12 18 12 36 12 18-12 36-12" })
+  ] });
 }
 function SlashEmblem() {
-  return /* @__PURE__ */ import_react25.default.createElement("div", { className: "card-fx-emblem card-fx-emblem-slash", "aria-hidden": "true" }, /* @__PURE__ */ import_react25.default.createElement("span", null), /* @__PURE__ */ import_react25.default.createElement("span", null));
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "card-fx-emblem card-fx-emblem-slash", "aria-hidden": "true", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", {}),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", {})
+  ] });
 }
 function EffectEmblem({ preset }) {
   if (preset.emblem === "crown") {
-    return /* @__PURE__ */ import_react25.default.createElement(CrownEmblem, null);
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(CrownEmblem, {});
   }
   if (preset.emblem === "wave") {
-    return /* @__PURE__ */ import_react25.default.createElement(WaveEmblem, null);
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WaveEmblem, {});
   }
   if (preset.emblem === "slash") {
-    return /* @__PURE__ */ import_react25.default.createElement(SlashEmblem, null);
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SlashEmblem, {});
   }
   return null;
 }
 function normalizeEffect(detail, boardSelector) {
-  return detail?.preset ? detail : buildCardEffectPayload({ ...detail, boardSelector });
+  if (detail && "preset" in detail && "id" in detail) {
+    return detail;
+  }
+  return buildCardEffectPayload({ ...detail, boardSelector });
 }
 function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotion() ?? false;
   const [queue, setQueue] = (0, import_react25.useState)([]);
   const [activeEffect, setActiveEffect] = (0, import_react25.useState)(null);
   const [phase, setPhase] = (0, import_react25.useState)("idle");
@@ -38059,11 +38340,25 @@ function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
     };
   }, [activeEffect, boardSelector, reduceMotion]);
   const particles = (0, import_react25.useMemo)(() => activeEffect ? buildParticles(activeEffect) : [], [activeEffect]);
+  const castPath = (0, import_react25.useMemo)(() => {
+    if (!activeEffect) {
+      return null;
+    }
+    const sourceRect = activeEffect.sourceRect;
+    const targetRect = activeEffect.targetRect;
+    const midX = sourceRect.left + (targetRect.left - sourceRect.left) * 0.5;
+    const arcLift = Math.max(18, Number(activeEffect.preset.arcLift || 0));
+    const midY = Math.min(sourceRect.top, targetRect.top) - arcLift;
+    return {
+      x: [sourceRect.left, midX, targetRect.left],
+      y: [sourceRect.top, midY, targetRect.top]
+    };
+  }, [activeEffect]);
   if (typeof document === "undefined") {
     return null;
   }
   return (0, import_react_dom.createPortal)(
-    /* @__PURE__ */ import_react25.default.createElement(AnimatePresence, null, activeEffect ? /* @__PURE__ */ import_react25.default.createElement(
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(AnimatePresence, { children: activeEffect ? /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
       "div",
       {
         className: classNames(
@@ -38072,111 +38367,124 @@ function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
           activeEffect.preset.dimBackground && "is-dimmed",
           phase === "resolve" && "is-resolving"
         ),
-        "aria-hidden": "true"
-      },
-      /* @__PURE__ */ import_react25.default.createElement(
-        motion.div,
-        {
-          className: "card-fx-dim",
-          initial: { opacity: 0 },
-          animate: { opacity: activeEffect.preset.dimBackground ? 0.76 : 0.22 },
-          exit: { opacity: 0 },
-          transition: { duration: reduceMotion ? 0.12 : 0.24 }
-        }
-      ),
-      /* @__PURE__ */ import_react25.default.createElement(
-        motion.div,
-        {
-          className: "card-fx-flash",
-          style: { "--card-fx-flash": activeEffect.preset.flashColor },
-          initial: { opacity: 0 },
-          animate: { opacity: [0, 0.96, 0.08, 0] },
-          exit: { opacity: 0 },
-          transition: { duration: reduceMotion ? 0.2 : 0.42, times: [0, 0.14, 0.42, 1] }
-        }
-      ),
-      /* @__PURE__ */ import_react25.default.createElement("div", { className: "card-fx-vignette" }),
-      /* @__PURE__ */ import_react25.default.createElement(
-        motion.div,
-        {
-          className: classNames("card-fx-card", `is-${activeEffect.preset.themeClass}`),
-          initial: {
-            x: activeEffect.sourceRect.left,
-            y: activeEffect.sourceRect.top,
-            width: activeEffect.sourceRect.width,
-            height: activeEffect.sourceRect.height,
-            scale: 1,
-            rotate: 0,
-            opacity: 1
-          },
-          animate: {
-            x: activeEffect.targetRect.left,
-            y: activeEffect.targetRect.top,
-            width: activeEffect.targetRect.width,
-            height: activeEffect.targetRect.height,
-            scale: phase === "resolve" ? activeEffect.preset.arrivalScale : activeEffect.preset.travelScale,
-            rotate: activeEffect.preset.rotation,
-            opacity: phase === "resolve" && activeEffect.effectType === "escape" ? 0.36 : 1
-          },
-          exit: { opacity: 0, scale: 0.94 },
-          transition: {
-            duration: reduceMotion ? 0.22 : activeEffect.preset.moveDuration,
-            ease: activeEffect.preset.moveEase
-          }
-        },
-        /* @__PURE__ */ import_react25.default.createElement("div", { className: "card-fx-aura" }, /* @__PURE__ */ import_react25.default.createElement("span", { className: "card-fx-ring ring-1", style: { "--ring-color": activeEffect.preset.auraColors[0] } }), /* @__PURE__ */ import_react25.default.createElement("span", { className: "card-fx-ring ring-2", style: { "--ring-color": activeEffect.preset.auraColors[1] } }), /* @__PURE__ */ import_react25.default.createElement("span", { className: "card-fx-ring ring-3", style: { "--ring-color": activeEffect.preset.auraColors[2] } })),
-        /* @__PURE__ */ import_react25.default.createElement("div", { className: classNames("card-fx-surface", `is-${activeEffect.preset.themeClass}`) }, /* @__PURE__ */ import_react25.default.createElement(CardClone, { effect: activeEffect })),
-        /* @__PURE__ */ import_react25.default.createElement(EffectEmblem, { preset: activeEffect.preset }),
-        /* @__PURE__ */ import_react25.default.createElement("div", { className: classNames("card-fx-particles", `is-${activeEffect.preset.particleStyle}`) }, particles.map((particle) => /* @__PURE__ */ import_react25.default.createElement(
-          "span",
-          {
-            key: particle.id,
-            className: "card-fx-particle",
-            style: {
-              "--particle-x": `${particle.x}px`,
-              "--particle-y": `${particle.y}px`,
-              "--particle-delay": `${particle.delay}s`,
-              "--particle-scale": particle.scale
+        "aria-hidden": "true",
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+            motion.div,
+            {
+              className: "card-fx-dim",
+              initial: { opacity: 0 },
+              animate: { opacity: activeEffect.preset.dimBackground ? 0.76 : 0.22 },
+              exit: { opacity: 0 },
+              transition: { duration: reduceMotion ? 0.12 : 0.24 }
             }
-          }
-        )))
-      ),
-      activeEffect.preset.impactRing ? /* @__PURE__ */ import_react25.default.createElement(
-        motion.div,
-        {
-          className: classNames("card-fx-impact", `is-${activeEffect.preset.themeClass}`),
-          style: {
-            left: activeEffect.targetRect.left + activeEffect.targetRect.width * 0.5,
-            top: activeEffect.targetRect.top + activeEffect.targetRect.height * 0.56
-          },
-          initial: { opacity: 0, scale: 0.54 },
-          animate: { opacity: phase === "resolve" ? 1 : 0, scale: phase === "resolve" ? 1.18 : 0.62 },
-          exit: { opacity: 0 },
-          transition: { duration: reduceMotion ? 0.16 : 0.34, ease: [0.2, 0.9, 0.2, 1] }
-        }
-      ) : null,
-      activeEffect.result === "win" ? /* @__PURE__ */ import_react25.default.createElement(
-        motion.div,
-        {
-          className: classNames("card-fx-result", `is-${activeEffect.preset.resultGlow}`),
-          style: {
-            left: activeEffect.highlightRect.left,
-            top: activeEffect.highlightRect.top,
-            width: activeEffect.highlightRect.width,
-            height: activeEffect.highlightRect.height
-          },
-          initial: { opacity: 0, scale: 0.84 },
-          animate: { opacity: phase === "resolve" ? 1 : 0, scale: phase === "resolve" ? clamp2(activeEffect.preset.arrivalScale + 0.06, 1.02, 1.18) : 0.86 },
-          exit: { opacity: 0 },
-          transition: { duration: reduceMotion ? 0.18 : 0.42, ease: [0.18, 0.88, 0.24, 1] }
-        }
-      ) : null
-    ) : null),
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+            motion.div,
+            {
+              className: "card-fx-flash",
+              style: { "--card-fx-flash": activeEffect.preset.flashColor },
+              initial: { opacity: 0 },
+              animate: { opacity: [0, 0.96, 0.08, 0] },
+              exit: { opacity: 0 },
+              transition: { duration: reduceMotion ? 0.2 : 0.42, times: [0, 0.14, 0.42, 1] }
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "card-fx-vignette" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+            motion.div,
+            {
+              className: classNames("card-fx-card", `is-${activeEffect.preset.themeClass}`),
+              style: { "--card-fx-aspect": activeEffect.cardAspectRatio },
+              initial: {
+                x: activeEffect.sourceRect.left,
+                y: activeEffect.sourceRect.top,
+                width: activeEffect.sourceRect.width,
+                height: activeEffect.sourceRect.height,
+                scale: 1,
+                rotate: 0,
+                opacity: 1
+              },
+              animate: {
+                x: phase === "resolve" ? activeEffect.targetRect.left : castPath?.x || activeEffect.targetRect.left,
+                y: phase === "resolve" ? activeEffect.targetRect.top : castPath?.y || activeEffect.targetRect.top,
+                width: activeEffect.targetRect.width,
+                height: activeEffect.targetRect.height,
+                scale: phase === "resolve" ? activeEffect.preset.arrivalScale : activeEffect.preset.travelScale,
+                rotate: activeEffect.preset.rotation,
+                opacity: phase === "resolve" && activeEffect.effectType === "escape" ? 0.36 : 1
+              },
+              exit: { opacity: 0, scale: 0.94 },
+              transition: {
+                duration: reduceMotion ? 0.22 : activeEffect.preset.moveDuration,
+                ease: activeEffect.preset.moveEase
+              },
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "card-fx-aura", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "card-fx-ring ring-1", style: { "--ring-color": activeEffect.preset.auraColors[0] } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "card-fx-ring ring-2", style: { "--ring-color": activeEffect.preset.auraColors[1] } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "card-fx-ring ring-3", style: { "--ring-color": activeEffect.preset.auraColors[2] } })
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: classNames("card-fx-surface", `is-${activeEffect.preset.themeClass}`), children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(CardClone, { effect: activeEffect }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(EffectEmblem, { preset: activeEffect.preset }),
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: classNames("card-fx-particles", `is-${activeEffect.preset.particleStyle}`), children: particles.map((particle) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+                  "span",
+                  {
+                    className: "card-fx-particle",
+                    style: {
+                      "--particle-x": `${particle.x}px`,
+                      "--particle-y": `${particle.y}px`,
+                      "--particle-delay": `${particle.delay}s`,
+                      "--particle-scale": particle.scale
+                    }
+                  },
+                  particle.id
+                )) })
+              ]
+            }
+          ),
+          activeEffect.preset.impactRing ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+            motion.div,
+            {
+              className: classNames("card-fx-impact", `is-${activeEffect.preset.themeClass}`),
+              style: {
+                left: activeEffect.targetRect.left + activeEffect.targetRect.width * 0.5,
+                top: activeEffect.targetRect.top + activeEffect.targetRect.height * 0.56
+              },
+              initial: { opacity: 0, scale: 0.54 },
+              animate: { opacity: phase === "resolve" ? 1 : 0, scale: phase === "resolve" ? 1.18 : 0.62 },
+              exit: { opacity: 0 },
+              transition: { duration: reduceMotion ? 0.16 : 0.34, ease: [0.2, 0.9, 0.2, 1] }
+            }
+          ) : null,
+          activeEffect.result === "win" ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+            motion.div,
+            {
+              className: classNames("card-fx-result", `is-${activeEffect.preset.resultGlow}`),
+              style: {
+                left: activeEffect.highlightRect.left,
+                top: activeEffect.highlightRect.top,
+                width: activeEffect.highlightRect.width,
+                height: activeEffect.highlightRect.height
+              },
+              initial: { opacity: 0, scale: 0.84 },
+              animate: {
+                opacity: phase === "resolve" ? 1 : 0,
+                scale: phase === "resolve" ? clamp2(activeEffect.preset.arrivalScale + 0.06, 1.02, 1.18) : 0.86
+              },
+              exit: { opacity: 0 },
+              transition: { duration: reduceMotion ? 0.18 : 0.42, ease: [0.18, 0.88, 0.24, 1] }
+            }
+          ) : null
+        ]
+      }
+    ) : null }),
     document.body
   );
 }
 
-// discord_activity_skullking/app/src/App.jsx
+// discord_activity_skullking/app/src/App.tsx
+var import_jsx_runtime7 = __toESM(require_jsx_runtime());
 var ShellErrorBoundary = class extends import_react26.Component {
   constructor(props) {
     super(props);
@@ -38190,15 +38498,23 @@ var ShellErrorBoundary = class extends import_react26.Component {
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ import_react26.default.createElement("div", { id: "react-shell-error", style: { padding: "20px", color: "#fff", background: "#1a1a2e", minHeight: "100vh", fontFamily: "monospace" } }, /* @__PURE__ */ import_react26.default.createElement("h2", { style: { color: "#e74c3c" } }, "UI \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4"), /* @__PURE__ */ import_react26.default.createElement("p", null, "\uAC8C\uC784 \uB85C\uC9C1\uC740 \uC815\uC0C1 \uC791\uB3D9 \uC911\uC785\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68\uD558\uBA74 \uBCF5\uAD6C\uB429\uB2C8\uB2E4."), /* @__PURE__ */ import_react26.default.createElement(
-        "button",
-        {
-          type: "button",
-          onClick: () => window.location.reload(),
-          style: { padding: "8px 16px", cursor: "pointer", marginTop: "8px" }
-        },
-        "\uC0C8\uB85C\uACE0\uCE68"
-      ), /* @__PURE__ */ import_react26.default.createElement("details", { style: { marginTop: "12px", fontSize: "12px", color: "#aaa" } }, /* @__PURE__ */ import_react26.default.createElement("summary", null, "\uC624\uB958 \uC0C1\uC138"), /* @__PURE__ */ import_react26.default.createElement("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-all" } }, String(this.state.error?.message || this.state.error || "Unknown error"))));
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { id: "react-shell-error", style: { padding: "20px", color: "#fff", background: "#1a1a2e", minHeight: "100vh", fontFamily: "monospace" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { style: { color: "#e74c3c" }, children: "UI \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { children: "\uAC8C\uC784 \uB85C\uC9C1\uC740 \uC815\uC0C1 \uC791\uB3D9 \uC911\uC785\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68\uD558\uBA74 \uBCF5\uAD6C\uB429\uB2C8\uB2E4." }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          "button",
+          {
+            type: "button",
+            onClick: () => window.location.reload(),
+            style: { padding: "8px 16px", cursor: "pointer", marginTop: "8px" },
+            children: "\uC0C8\uB85C\uACE0\uCE68"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("details", { style: { marginTop: "12px", fontSize: "12px", color: "#aaa" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("summary", { children: "\uC624\uB958 \uC0C1\uC138" }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("pre", { style: { whiteSpace: "pre-wrap", wordBreak: "break-all" }, children: String(this.state.error?.message || this.state.error || "Unknown error") })
+        ] })
+      ] });
     }
     return this.props.children;
   }
@@ -38314,7 +38630,7 @@ function HtmlFragment({ html, marker }) {
     node.dataset.fragmentInitialized = "true";
     node.dataset.fragmentHtml = html;
   }, [html]);
-  return /* @__PURE__ */ import_react26.default.createElement("div", { ref, "data-shell-fragment": marker });
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { ref, "data-shell-fragment": marker });
 }
 function syncSplashElement({ visible, mode, currentView }) {
   const splash2 = document.getElementById("splash");
@@ -38353,7 +38669,7 @@ function ShellPanel({ id: id3, visible, className, html }) {
     node.dataset.panelInitialized = "true";
     node.dataset.panelHtml = html;
   }, [html]);
-  return /* @__PURE__ */ import_react26.default.createElement(
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
     "section",
     {
       ref,
@@ -38370,7 +38686,14 @@ function LobbySeat({ player, layout: layout2, xPct, yPct, isSelf }) {
     transform: `translate(-50%, -50%) scale(calc(${layout2.scale} * var(--lobby-seat-scale, 1)))`
   };
   if (!player) {
-    return /* @__PURE__ */ import_react26.default.createElement("div", { className: "seat", style }, /* @__PURE__ */ import_react26.default.createElement("div", { className: "ava" }), /* @__PURE__ */ import_react26.default.createElement("div", { className: "meta" }, /* @__PURE__ */ import_react26.default.createElement("div", { className: "n" }, "Open Slot"), /* @__PURE__ */ import_react26.default.createElement("div", { className: "s" }, "\uB2E4\uC74C \uCC38\uAC00\uC790 \uB300\uAE30 \uC911")), /* @__PURE__ */ import_react26.default.createElement("div", { className: "ready bot" }, "Invite"));
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "seat", style, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "ava" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "meta", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "n", children: "Open Slot" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "s", children: "\uB2E4\uC74C \uCC38\uAC00\uC790 \uB300\uAE30 \uC911" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "ready bot", children: "Invite" })
+    ] });
   }
   const isHost = Boolean(player.id) && String(player.id) === String(player.hostId || "");
   const isBot = String(player.id || "").startsWith("bot-") || /bot/i.test(String(player.name || ""));
@@ -38384,14 +38707,21 @@ function LobbySeat({ player, layout: layout2, xPct, yPct, isSelf }) {
   }
   const badgeText = isHost ? "Host" : isBot ? "BOT" : stateLabel;
   const badgeClass = isBot ? "ready bot" : normalizedState === "ready" ? "ready is-ready" : normalizedState === "bid" ? "ready is-bid" : normalizedState === "playing" ? "ready is-playing" : normalizedState === "finished" ? "ready is-finished" : "ready not-ready";
-  return /* @__PURE__ */ import_react26.default.createElement("div", { className: isSelf ? "seat seat-self me" : "seat", style }, /* @__PURE__ */ import_react26.default.createElement(
-    "div",
-    {
-      className: `ava${player.avatar_url ? " has-discord-avatar" : ""}`,
-      style: player.avatar_url ? void 0 : { background: avatarColor(player.id || player.name || "?") }
-    },
-    player.avatar_url ? /* @__PURE__ */ import_react26.default.createElement("img", { src: player.avatar_url, alt: player.name || "Player", loading: "lazy" }) : playerInitial(player.name)
-  ), /* @__PURE__ */ import_react26.default.createElement("div", { className: "meta" }, /* @__PURE__ */ import_react26.default.createElement("div", { className: "n" }, player.name || "Player"), /* @__PURE__ */ import_react26.default.createElement("div", { className: "s" }, statusParts.join(" \xB7 "))), /* @__PURE__ */ import_react26.default.createElement("div", { className: badgeClass }, badgeText));
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: isSelf ? "seat seat-self me" : "seat", style, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+      "div",
+      {
+        className: `ava${player.avatar_url ? " has-discord-avatar" : ""}`,
+        style: player.avatar_url ? void 0 : { background: avatarColor(player.id || player.name || "?") },
+        children: player.avatar_url ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: player.avatar_url, alt: player.name || "Player", loading: "lazy" }) : playerInitial(player.name)
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "meta", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "n", children: player.name || "Player" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "s", children: statusParts.join(" \xB7 ") })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: badgeClass, children: badgeText })
+  ] });
 }
 function buildLobbySeatModel(gameState, viewerId) {
   const players = Array.isArray(gameState?.players) ? gameState.players : [];
@@ -38477,20 +38807,23 @@ function LobbyPortals({ gameState, viewerId, active }) {
   }
   const seats = buildLobbySeatModel(gameState, viewerId);
   const roomCodeTarget = null;
-  return /* @__PURE__ */ import_react26.default.createElement(import_react26.default.Fragment, null, roomCodeTarget ? (0, import_react_dom2.createPortal)(`Room Code \xB7 ${String(gameState.session_id || "-").toUpperCase()}`, roomCodeTarget) : null, playerListTarget ? (0, import_react_dom2.createPortal)(
-    /* @__PURE__ */ import_react26.default.createElement(import_react26.default.Fragment, null, seats.map((seat, index) => /* @__PURE__ */ import_react26.default.createElement(
-      LobbySeat,
-      {
-        key: seat.player ? String(seat.player.id || index) : `open-${index}`,
-        player: seat.player,
-        layout: seat.layout,
-        xPct: seat.xPct,
-        yPct: seat.yPct,
-        isSelf: seat.isSelf
-      }
-    ))),
-    playerListTarget
-  ) : null);
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
+    roomCodeTarget ? (0, import_react_dom2.createPortal)(`Room Code \xB7 ${String(gameState.session_id || "-").toUpperCase()}`, roomCodeTarget) : null,
+    playerListTarget ? (0, import_react_dom2.createPortal)(
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_jsx_runtime7.Fragment, { children: seats.map((seat, index) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        LobbySeat,
+        {
+          player: seat.player,
+          layout: seat.layout,
+          xPct: seat.xPct,
+          yPct: seat.yPct,
+          isSelf: seat.isSelf
+        },
+        seat.player ? String(seat.player.id || index) : `open-${index}`
+      )) }),
+      playerListTarget
+    ) : null
+  ] });
 }
 function AppShell() {
   const { currentView, gameState, viewerId, splashVisible, splashMode } = useReactUiState();
@@ -38510,44 +38843,57 @@ function AppShell() {
       currentView
     });
   }, [currentView, splashMode, splashVisible]);
-  return /* @__PURE__ */ import_react26.default.createElement("div", { id: "react-shell" }, /* @__PURE__ */ import_react26.default.createElement(HtmlFragment, { marker: "splash", html: fragments.splashHtml }), /* @__PURE__ */ import_react26.default.createElement(HtmlFragment, { marker: "toast", html: fragments.toastHtml }), /* @__PURE__ */ import_react26.default.createElement("main", { className: "layout" }, /* @__PURE__ */ import_react26.default.createElement(
-    ShellPanel,
-    {
-      id: "homePanel",
-      visible: currentView === "home",
-      className: fragments.homeClassName,
-      html: fragments.homeInnerHtml
-    }
-  ), /* @__PURE__ */ import_react26.default.createElement(
-    ShellPanel,
-    {
-      id: "lobbyPanel",
-      visible: currentView === "lobby",
-      className: fragments.lobbyClassName,
-      html: fragments.lobbyInnerHtml
-    }
-  ), /* @__PURE__ */ import_react26.default.createElement(
-    ShellPanel,
-    {
-      id: "gamePanel",
-      visible: currentView === "game",
-      className: fragments.gameClassName,
-      html: fragments.gameInnerHtml
-    }
-  )), /* @__PURE__ */ import_react26.default.createElement(LobbyPortals, { gameState, viewerId, active: currentView === "lobby" }), /* @__PURE__ */ import_react26.default.createElement(HtmlFragment, { marker: "dialogs", html: fragments.dialogsHtml }), /* @__PURE__ */ import_react26.default.createElement(CardEffectLayer, { boardSelector: "#gamePanel .table-wrap" }));
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { id: "react-shell", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(HtmlFragment, { marker: "splash", html: fragments.splashHtml }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(HtmlFragment, { marker: "toast", html: fragments.toastHtml }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("main", { className: "layout", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        ShellPanel,
+        {
+          id: "homePanel",
+          visible: currentView === "home",
+          className: fragments.homeClassName,
+          html: fragments.homeInnerHtml
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        ShellPanel,
+        {
+          id: "lobbyPanel",
+          visible: currentView === "lobby",
+          className: fragments.lobbyClassName,
+          html: fragments.lobbyInnerHtml
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        ShellPanel,
+        {
+          id: "gamePanel",
+          visible: currentView === "game",
+          className: fragments.gameClassName,
+          html: fragments.gameInnerHtml
+        }
+      )
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(LobbyPortals, { gameState, viewerId, active: currentView === "lobby" }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(HtmlFragment, { marker: "dialogs", html: fragments.dialogsHtml }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(CardEffectLayer, { boardSelector: "#gamePanel .table-wrap" })
+  ] });
 }
 function App() {
-  return /* @__PURE__ */ import_react26.default.createElement(ShellErrorBoundary, null, /* @__PURE__ */ import_react26.default.createElement(AppShell, null));
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(ShellErrorBoundary, { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(AppShell, {}) });
 }
 
-// discord_activity_skullking/app/src/main.jsx
+// discord_activity_skullking/app/src/main.tsx
+var import_jsx_runtime8 = __toESM(require_jsx_runtime());
 var rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Missing #root container for Skull King React app");
 }
 var root = (0, import_client.createRoot)(rootElement);
+installCardEffectBridge();
 (0, import_react_dom3.flushSync)(() => {
-  root.render(/* @__PURE__ */ import_react27.default.createElement(App, null));
+  root.render(/* @__PURE__ */ (0, import_jsx_runtime8.jsx)(App, {}));
 });
 Promise.resolve().then(() => (init_legacy_app(), legacy_app_exports)).catch((error) => {
   console.error("[SkullKing][BootstrapImportFailed]", error);
@@ -38555,10 +38901,10 @@ Promise.resolve().then(() => (init_legacy_app(), legacy_app_exports)).catch((err
 });
 /*! Bundled license information:
 
-react/cjs/react.development.js:
+scheduler/cjs/scheduler.development.js:
   (**
    * @license React
-   * react.development.js
+   * scheduler.development.js
    *
    * Copyright (c) Meta Platforms, Inc. and affiliates.
    *
@@ -38566,10 +38912,10 @@ react/cjs/react.development.js:
    * LICENSE file in the root directory of this source tree.
    *)
 
-scheduler/cjs/scheduler.development.js:
+react/cjs/react.development.js:
   (**
    * @license React
-   * scheduler.development.js
+   * react.development.js
    *
    * Copyright (c) Meta Platforms, Inc. and affiliates.
    *

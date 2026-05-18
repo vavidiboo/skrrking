@@ -3,8 +3,8 @@
 const DEFAULT_API_BASE = window.location.origin;
 const DEFAULT_CLIENT_ID = "1488188343849324706";
 const UNSET_CLIENT_ID = "YOUR_DISCORD_APPLICATION_ID";
-const TURN_LIMIT_SECONDS = 20;
-const PRE_BID_DELAY_SECONDS = 6;
+const TURN_LIMIT_SECONDS = 15;
+const PRE_BID_DELAY_SECONDS = 10;
 const BOOT_SPLASH_MIN_VISIBLE_MS = 2200;
 const ACTION_SPLASH_MIN_VISIBLE_MS = 650;
 const STATE_LONG_POLL_WAIT_MS = 20000;
@@ -15,6 +15,13 @@ const WS_QUICK_CLOSE_THRESHOLD_MS = 1500;
 const PING_PROBE_INTERVAL_MS = 3000;
 const PING_STALE_AFTER_MS = 9000;
 const WS_PING_TIMEOUT_MS = 2500;
+const SPLASH_BACKGROUND_PATHS = [
+  "/assets/images/splash/bg_splash_ship_1.jpg",
+  "/assets/images/splash/bg_splash_ship_2.jpg",
+  "/assets/images/splash/bg_splash_ship_3.jpg",
+  "/assets/images/splash/bg_splash_ship_4.jpg",
+  "/assets/images/splash/bg_splash_ship_5.jpg",
+];
 
 const CONNECTION_STATUS = Object.freeze({
   CONNECTED: "connected",
@@ -171,6 +178,7 @@ const bidMinusBtn = document.getElementById("bidMinusBtn");
 const bidPlusBtn = document.getElementById("bidPlusBtn");
 const bidDialogSubmitBtn = document.getElementById("bidDialogSubmitBtn");
 const bidDialogHint = document.getElementById("bidDialogHint");
+const bidDialogMeta = document.getElementById("bidDialogMeta");
 const interactionHud = document.getElementById("interactionHud");
 const interactionHudKicker = document.getElementById("interactionHudKicker");
 const interactionHudTitle = document.getElementById("interactionHudTitle");
@@ -837,7 +845,7 @@ function syncLobbySettingsUi(game) {
   const settingsPending = Boolean(appState.lobbySettingsPending);
   const s = game.settings;
 
-  const tl = Number(s.turn_limit_seconds || 20);
+  const tl = Number(s.turn_limit_seconds || TURN_LIMIT_SECONDS);
   if (lobbyTurnTimerVal) lobbyTurnTimerVal.textContent = `${tl}s`;
   if (lobbyTurnTimerDown) lobbyTurnTimerDown.disabled = !isHost || settingsPending;
   if (lobbyTurnTimerUp) lobbyTurnTimerUp.disabled = !isHost || settingsPending;
@@ -865,7 +873,7 @@ function syncLobbySettingsUi(game) {
 
 if (lobbyTurnTimerDown) {
   lobbyTurnTimerDown.addEventListener("click", () => {
-    const cur = Number(appState.game?.settings?.turn_limit_seconds || 20);
+    const cur = Number(appState.game?.settings?.turn_limit_seconds || TURN_LIMIT_SECONDS);
     const idx = TURN_TIMER_OPTIONS.indexOf(cur);
     const next = TURN_TIMER_OPTIONS[Math.max(0, idx - 1)];
     if (next !== cur) postLobbySettings({ turn_limit_seconds: next });
@@ -873,7 +881,7 @@ if (lobbyTurnTimerDown) {
 }
 if (lobbyTurnTimerUp) {
   lobbyTurnTimerUp.addEventListener("click", () => {
-    const cur = Number(appState.game?.settings?.turn_limit_seconds || 20);
+    const cur = Number(appState.game?.settings?.turn_limit_seconds || TURN_LIMIT_SECONDS);
     const idx = TURN_TIMER_OPTIONS.indexOf(cur);
     const next = TURN_TIMER_OPTIONS[Math.min(TURN_TIMER_OPTIONS.length - 1, idx + 1)];
     if (next !== cur) postLobbySettings({ turn_limit_seconds: next });
@@ -1750,9 +1758,13 @@ async function warmStartupCaches() {
   }
   appState.startupWarmDone = true;
   const preloadTargets = [
-    `${window.location.origin}/assets/bg_ship_1.jpg`,
-    `${window.location.origin}/assets/bg_ship_2.jpg`,
-    `${window.location.origin}/assets/bg_ship_3.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_1.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_2.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_3.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_4.jpg`,
+    `${window.location.origin}/assets/images/splash/bg_splash_ship_5.jpg`,
+    `${window.location.origin}/assets/images/lobby/bg_lobby.jpg`,
+    `${window.location.origin}/assets/images/game/bg_game_table_day.jpg`,
   ];
   const avatarTargets = [];
   if (appState.discordUserId) {
@@ -1768,6 +1780,19 @@ async function warmStartupCaches() {
   for (const src of allTargets) {
     await preloadImage(src);
   }
+}
+
+function applyRandomSplashBackground() {
+  const { splash: currentSplash } = getSplashNodes();
+  if (!currentSplash || !SPLASH_BACKGROUND_PATHS.length) {
+    return;
+  }
+  const previousPath = String(appState.currentSplashBackgroundPath || "");
+  const candidates = SPLASH_BACKGROUND_PATHS.filter((path) => path !== previousPath);
+  const sourcePool = candidates.length ? candidates : SPLASH_BACKGROUND_PATHS;
+  const nextPath = sourcePool[Math.floor(Math.random() * sourcePool.length)];
+  appState.currentSplashBackgroundPath = nextPath;
+  currentSplash.style.setProperty("--splash-bg-image", `url('${nextPath}')`);
 }
 
 function fitViewport() {
@@ -1865,6 +1890,9 @@ function showSplash(message = "처리 중...", options = {}) {
   }
   if (!currentSplash) {
     return;
+  }
+  if (splashMode === "boot") {
+    applyRandomSplashBackground();
   }
   if (appState.splashHideTimer) {
     clearTimeout(appState.splashHideTimer);
@@ -5183,6 +5211,14 @@ function normalizedCardType(card) {
   return String(card?.type || card?.kind || "").toLowerCase();
 }
 
+function isSpecialCardType(cardType) {
+  return String(cardType || "").trim().toLowerCase() !== "suit";
+}
+
+function isSpecialCard(card) {
+  return isSpecialCardType(normalizedCardType(card));
+}
+
 function normalizedCardFxType(card) {
   const type = normalizedCardType(card);
   if (type === "suit") {
@@ -5757,11 +5793,15 @@ function buildInteractionHudState(game, uiModel) {
   }
 
   if (String(safeGame.status || "").toLowerCase() === ROOM_STATUS.BIDDING) {
+    const bidLimitSeconds = resolvedTurnLimitSeconds(safeGame);
+    const inspectSeconds = preBidDelayRemainingSeconds(safeGame);
     return {
       tone: "neutral",
       kicker: "Bid Phase",
       title: "손패를 읽고 가져갈 트릭 수를 예측하세요.",
-      body: safeUiModel.predictionSummary || "동시 비딩 페이즈입니다.",
+      body: inspectSeconds > 0
+        ? `손패 확인 ${inspectSeconds}초 후 동시 비딩이 시작되고, 비딩 제한 시간은 ${bidLimitSeconds}초입니다.`
+        : (safeUiModel.predictionSummary || `동시 비딩 진행 중 · 제한 시간 ${bidLimitSeconds}초`),
     };
   }
 
@@ -5860,8 +5900,13 @@ function renderTrickCenter(game, timeLeft) {
     appState.uiCache.trickAnimationStageKey = "";
     appState.uiCache.trickAnimatedCardsByPlayer = {};
     const prep = document.createElement("div");
-    prep.className = "trick-card";
-    prep.innerHTML = `<div>핸드 확인</div><div>${preBidDelaySeconds}초 후 동시 비딩</div>`;
+    prep.className = "trick-card pre-bid-inspect";
+    prep.innerHTML = `
+      <div class="trick-card-kicker">Pre-Bid Inspect</div>
+      <div>핸드 확인</div>
+      <div>${preBidDelaySeconds}초 후 동시 비딩</div>
+      <div class="trick-card-meta">비딩 제한 ${resolvedTurnLimitSeconds(game)}초</div>
+    `;
     trickCenter.appendChild(prep);
     return;
   }
@@ -5905,6 +5950,9 @@ function renderTrickCenter(game, timeLeft) {
   const cardRow = document.createElement("div");
   cardRow.className = "trick-zone-cards";
   const projectedWinnerId = String(previewOutcome?.outcome?.winnerId || "");
+  let resolvedWinnerCard = null;
+  let resolvedWinnerNode = null;
+  let resolvedWinnerFxType = "";
   source.forEach((play) => {
     const playerKey = String(play?.player_id || "");
     const cardKey = `${playerKey}:${cardStateSignature(play.card)}`;
@@ -5927,14 +5975,19 @@ function renderTrickCenter(game, timeLeft) {
     const cardWrap = document.createElement("div");
     cardWrap.className = "trick-zone-card-wrap";
     const card = renderCard(play.card, { className: "trick-zone-card", compact: true });
+    const cardType = normalizedCardType(play.card);
     const fxType = normalizedCardFxType(play.card);
     const isLeadingPlay = Boolean(projectedWinnerId) && String(play?.player_id || "") === projectedWinnerId;
-    const cinematicFxType = normalizedCardType(play.card) !== "suit" ? normalizedCardType(play.card) : isLeadingPlay ? "lead" : "";
+    const cinematicFxType = isSpecialCardType(cardType) ? cardType : isLeadingPlay ? "lead" : "";
     cardWrap.classList.add(`fx-${fxType}`);
     card.classList.add(`fx-${fxType}`);
     if (isLeadingPlay) {
       cardWrap.classList.add("is-leading");
       card.classList.add("is-leading", "hs-winning");
+      if (isSpecialCardType(cardType)) {
+        cardWrap.classList.add("is-leading-special");
+        card.classList.add("is-leading-special");
+      }
     }
     if (shouldAnimateEntry) {
       card.classList.add("hs-landing");
@@ -5961,6 +6014,11 @@ function renderTrickCenter(game, timeLeft) {
     if (play.pending_preview) {
       card.classList.add("pending-preview");
     }
+    if (heldStatus && String(play?.player_id || "") === String(heldStatus?.winnerId || "") && isSpecialCardType(cardType)) {
+      resolvedWinnerCard = play.card;
+      resolvedWinnerNode = card;
+      resolvedWinnerFxType = cardType;
+    }
     const label = document.createElement("div");
     label.className = "trick-zone-player";
     label.textContent = String(play.player_name || play.player_id || "Player");
@@ -5971,6 +6029,29 @@ function renderTrickCenter(game, timeLeft) {
   trickCenter.appendChild(cardRow);
   appState.uiCache.trickAnimationStageKey = trickAnimationStageKey;
   appState.uiCache.trickAnimatedCardsByPlayer = nextAnimatedCards;
+  if (heldStatus && resolvedWinnerCard && resolvedWinnerNode) {
+    const resolvedFxKey = [
+      String(game?.session_id || ""),
+      String(game?.round_number || 0),
+      String(game?.tricks_completed || 0),
+      String(heldStatus?.winnerId || ""),
+      cardStateSignature(resolvedWinnerCard),
+      String(heldStatus?.appliedRule || ""),
+      "winner",
+    ].join(":");
+    if (!appState.uiCache.cinematicFxKeys?.[resolvedFxKey]) {
+      appState.uiCache.cinematicFxKeys[resolvedFxKey] = true;
+      window.SkullKingFX?.playCardEffect?.({
+        card: resolvedWinnerCard,
+        effectType: resolvedWinnerFxType,
+        sourceElement: resolvedWinnerNode,
+        targetElement: resolvedWinnerNode,
+        highlightElement: resolvedWinnerNode,
+        boardSelector: "#gamePanel .table-wrap",
+        result: "win",
+      });
+    }
+  }
 
   const status = document.createElement("div");
   status.className = "trick-zone-status";
@@ -7498,7 +7579,10 @@ function openBidDialog(maxBid) {
   }
   if (bidDialogHint) {
     const round = Number(appState.game?.round_number || 0);
-    bidDialogHint.textContent = `Round ${round > 0 ? round : "-"}`;
+    bidDialogHint.textContent = `Round ${round > 0 ? round : "-"} · Limit ${resolvedTurnLimitSeconds(appState.game)}s`;
+  }
+  if (bidDialogMeta) {
+    bidDialogMeta.textContent = `손패 확인 ${PRE_BID_DELAY_SECONDS}초 후 동시 비딩 · 제한 시간 ${resolvedTurnLimitSeconds(appState.game)}초`;
   }
   updateBidStepButtons();
   safeOpenDialog(bidDialog);
@@ -7807,31 +7891,84 @@ function renderFinishDialog(game) {
   const myScore = Number(me?.score || 0);
   const totalRounds = Number(game.round_number || 0);
   const settings = game.settings || {};
+  const forfeitTone = Boolean(
+    game?.ended_reason === "forfeit" ||
+    game?.ended_reason === "surrender" ||
+    game?.result_tone === "forfeit" ||
+    me?.forfeited === true ||
+    me?.surrendered === true ||
+    me?.status === "forfeit" ||
+    me?.status === "surrendered" ||
+    me?.left === true,
+  );
+  const firstPlaceTone = !forfeitTone && myRank === 1;
+  const resultTone = forfeitTone
+    ? "forfeit"
+    : firstPlaceTone
+      ? "firstPlace"
+      : myScore >= 0
+        ? "victory"
+        : "defeat";
+  const resultTitleByTone = {
+    firstPlace: "1등 달성",
+    victory: "승리하였습니다",
+    defeat: "패배하였습니다",
+    forfeit: "기권하였습니다",
+  };
+  const resultSubByTone = {
+    firstPlace: `총 ${totalRounds}라운드 항해 끝에 가장 먼저 보물을 차지했습니다.`,
+    victory: `총 ${totalRounds}라운드 항해를 무사히 마쳤습니다. 보상과 점수를 확인하세요.`,
+    defeat: `총 ${totalRounds}라운드 항해가 종료되었습니다. 점수를 확인하고 다시 도전하세요.`,
+    forfeit: `이번 항해에서는 물러났습니다. 정비를 마치고 다시 도전하세요.`,
+  };
+  const resultSummaryByTone = {
+    firstPlace: "Treasure Crown",
+    victory: "Voyage Cleared",
+    defeat: `Winner · ${winner?.name || "-"}`,
+    forfeit: "Retreated",
+  };
+  const resultPillByTone = {
+    firstPlace: `${winner?.score ?? 0} pts`,
+    victory: `내 순위 ${myRank}위`,
+    defeat: `내 순위 ${myRank}위`,
+    forfeit: "기권 처리",
+  };
+  const resultCoinByTone = {
+    firstPlace: "1위",
+    victory: `${myRank}위`,
+    defeat: `${myRank}위`,
+    forfeit: "기권",
+  };
+  const resultEventLabelByTone = {
+    firstPlace: "First Place",
+    victory: "Victory",
+    defeat: "Defeat",
+    forfeit: "Forfeit",
+  };
 
   if (finishDialog) {
-    finishDialog.dataset.tone = iWon ? "victory" : "defeat";
+    finishDialog.dataset.tone = resultTone;
   }
   if (finishResultTitle) {
-    finishResultTitle.textContent = iWon ? "승리하였습니다" : "패배하였습니다";
+    finishResultTitle.textContent = resultTitleByTone[resultTone];
   }
   if (finishResultSub) {
-    finishResultSub.textContent = iWon
-      ? `총 ${totalRounds}라운드 항해 끝에 정상에 올랐습니다.`
-      : `총 ${totalRounds}라운드 항해가 종료되었습니다. 점수를 확인하고 다시 도전하세요.`;
+    finishResultSub.textContent = resultSubByTone[resultTone];
   }
   if (finishSummaryText) {
-    finishSummaryText.textContent = iWon ? "Champion Captain" : `Winner · ${winner?.name || "-"}`;
+    finishSummaryText.textContent = resultSummaryByTone[resultTone];
   }
   if (finishSummaryPill) {
-    finishSummaryPill.textContent = iWon ? `${winner?.score ?? 0} pts` : `내 순위 ${myRank}위`;
+    finishSummaryPill.textContent = resultPillByTone[resultTone];
   }
 
   const myRow = me ? (breakdownByPlayer[String(me.id || "")] || {}) : {};
   if (finishResultCoin) {
-    finishResultCoin.textContent = me ? `${myRank}위` : `${winner?.score ?? 0} pts`;
+    finishResultCoin.textContent = me ? resultCoinByTone[resultTone] : `${winner?.score ?? 0} pts`;
   }
   if (finishEventChips) {
     finishEventChips.innerHTML = `
+      <div class="pill">${resultEventLabelByTone[resultTone]}</div>
       <div class="pill">Leaderboard</div>
       <div class="pill">${totalRounds} Rounds</div>
       <div class="pill">Bonus ${Boolean(settings.bonus_enabled) ? "On" : "Off"}</div>

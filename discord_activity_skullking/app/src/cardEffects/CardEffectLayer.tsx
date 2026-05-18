@@ -1,38 +1,56 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { buildCardEffectPayload, installCardEffectBridge, onCardEffect } from "./effectBus.js";
+import type { CardEffectPayload, CardEffectPreset, ResultGlow } from "../types";
+import { buildCardEffectPayload, installCardEffectBridge, onCardEffect } from "./effectBus";
 
-function clamp(value, min, max) {
+interface CardEffectLayerProps {
+  boardSelector?: string;
+}
+
+interface EffectParticle {
+  id: string;
+  x: number;
+  y: number;
+  delay: number;
+  scale: number;
+}
+
+interface CastPath {
+  x: number[];
+  y: number[];
+}
+
+function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function buildParticles(effect) {
+function buildParticles(effect: CardEffectPayload): EffectParticle[] {
   const count = effect.preset.particleCount;
   const spread = effect.preset.particleSpread;
   return Array.from({ length: count }, (_, index) => {
     const progress = count <= 1 ? 0.5 : index / (count - 1);
-    const angle = (-78 + (progress * 156)) * (Math.PI / 180);
-    const distance = spread * (0.72 + ((index % 4) * 0.12));
+    const angle = (-78 + progress * 156) * (Math.PI / 180);
+    const distance = spread * (0.72 + (index % 4) * 0.12);
     return {
       id: `${effect.id}-p-${index}`,
       x: Math.cos(angle) * distance,
       y: Math.sin(angle) * distance,
       delay: index * 0.018,
-      scale: 0.72 + ((index % 5) * 0.08),
+      scale: 0.72 + (index % 5) * 0.08,
     };
   });
 }
 
-function classNames(...tokens) {
+function classNames(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(" ");
 }
 
-function resolveLiveHighlightClass(glow) {
+function resolveLiveHighlightClass(glow: ResultGlow): string {
   return classNames("card-fx-live-highlight", glow && `is-${glow}`);
 }
 
-function CardFallback({ effect }) {
+function CardFallback({ effect }: { effect: CardEffectPayload }) {
   return (
     <div className={classNames("card-fx-fallback", `type-${effect.effectType}`)}>
       <span className="card-fx-fallback-kicker">{effect.effectType.replace(/_/g, " ")}</span>
@@ -41,7 +59,7 @@ function CardFallback({ effect }) {
   );
 }
 
-function CardClone({ effect }) {
+function CardClone({ effect }: { effect: CardEffectPayload }) {
   if (effect.sourceInnerHtml) {
     return (
       <div className="card-fx-clone">
@@ -85,7 +103,7 @@ function SlashEmblem() {
   );
 }
 
-function EffectEmblem({ preset }) {
+function EffectEmblem({ preset }: { preset: CardEffectPreset }) {
   if (preset.emblem === "crown") {
     return <CrownEmblem />;
   }
@@ -98,15 +116,18 @@ function EffectEmblem({ preset }) {
   return null;
 }
 
-function normalizeEffect(detail, boardSelector) {
-  return detail?.preset ? detail : buildCardEffectPayload({ ...detail, boardSelector });
+function normalizeEffect(detail: CardEffectPayload | Partial<CardEffectPayload> | null | undefined, boardSelector: string): CardEffectPayload {
+  if (detail && "preset" in detail && "id" in detail) {
+    return detail as CardEffectPayload;
+  }
+  return buildCardEffectPayload({ ...detail, boardSelector });
 }
 
-export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
-  const reduceMotion = useReducedMotion();
-  const [queue, setQueue] = useState([]);
-  const [activeEffect, setActiveEffect] = useState(null);
-  const [phase, setPhase] = useState("idle");
+export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }: CardEffectLayerProps) {
+  const reduceMotion = useReducedMotion() ?? false;
+  const [queue, setQueue] = useState<CardEffectPayload[]>([]);
+  const [activeEffect, setActiveEffect] = useState<CardEffectPayload | null>(null);
+  const [phase, setPhase] = useState<"idle" | "cast" | "resolve">("idle");
 
   useEffect(() => {
     installCardEffectBridge();
@@ -161,7 +182,21 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
     };
   }, [activeEffect, boardSelector, reduceMotion]);
 
-  const particles = useMemo(() => activeEffect ? buildParticles(activeEffect) : [], [activeEffect]);
+  const particles = useMemo<EffectParticle[]>(() => (activeEffect ? buildParticles(activeEffect) : []), [activeEffect]);
+  const castPath = useMemo<CastPath | null>(() => {
+    if (!activeEffect) {
+      return null;
+    }
+    const sourceRect = activeEffect.sourceRect;
+    const targetRect = activeEffect.targetRect;
+    const midX = sourceRect.left + (targetRect.left - sourceRect.left) * 0.5;
+    const arcLift = Math.max(18, Number(activeEffect.preset.arcLift || 0));
+    const midY = Math.min(sourceRect.top, targetRect.top) - arcLift;
+    return {
+      x: [sourceRect.left, midX, targetRect.left],
+      y: [sourceRect.top, midY, targetRect.top],
+    };
+  }, [activeEffect]);
 
   if (typeof document === "undefined") {
     return null;
@@ -197,6 +232,7 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
           <div className="card-fx-vignette" />
           <motion.div
             className={classNames("card-fx-card", `is-${activeEffect.preset.themeClass}`)}
+            style={{ "--card-fx-aspect": activeEffect.cardAspectRatio }}
             initial={{
               x: activeEffect.sourceRect.left,
               y: activeEffect.sourceRect.top,
@@ -207,8 +243,8 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
               opacity: 1,
             }}
             animate={{
-              x: activeEffect.targetRect.left,
-              y: activeEffect.targetRect.top,
+              x: phase === "resolve" ? activeEffect.targetRect.left : castPath?.x || activeEffect.targetRect.left,
+              y: phase === "resolve" ? activeEffect.targetRect.top : castPath?.y || activeEffect.targetRect.top,
               width: activeEffect.targetRect.width,
               height: activeEffect.targetRect.height,
               scale: phase === "resolve" ? activeEffect.preset.arrivalScale : activeEffect.preset.travelScale,
@@ -249,8 +285,8 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
             <motion.div
               className={classNames("card-fx-impact", `is-${activeEffect.preset.themeClass}`)}
               style={{
-                left: activeEffect.targetRect.left + (activeEffect.targetRect.width * 0.5),
-                top: activeEffect.targetRect.top + (activeEffect.targetRect.height * 0.56),
+                left: activeEffect.targetRect.left + activeEffect.targetRect.width * 0.5,
+                top: activeEffect.targetRect.top + activeEffect.targetRect.height * 0.56,
               }}
               initial={{ opacity: 0, scale: 0.54 }}
               animate={{ opacity: phase === "resolve" ? 1 : 0, scale: phase === "resolve" ? 1.18 : 0.62 }}
@@ -268,7 +304,10 @@ export function CardEffectLayer({ boardSelector = "#gamePanel .table-wrap" }) {
                 height: activeEffect.highlightRect.height,
               }}
               initial={{ opacity: 0, scale: 0.84 }}
-              animate={{ opacity: phase === "resolve" ? 1 : 0, scale: phase === "resolve" ? clamp(activeEffect.preset.arrivalScale + 0.06, 1.02, 1.18) : 0.86 }}
+              animate={{
+                opacity: phase === "resolve" ? 1 : 0,
+                scale: phase === "resolve" ? clamp(activeEffect.preset.arrivalScale + 0.06, 1.02, 1.18) : 0.86,
+              }}
               exit={{ opacity: 0 }}
               transition={{ duration: reduceMotion ? 0.18 : 0.42, ease: [0.18, 0.88, 0.24, 1] }}
             />

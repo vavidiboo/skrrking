@@ -1,7 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { App } from "./App.jsx";
+import { App } from "./App";
+import { installCardEffectBridge } from "./cardEffects/effectBus";
 
 const rootElement = document.getElementById("root");
 
@@ -10,6 +11,9 @@ if (!rootElement) {
 }
 
 const root = createRoot(rootElement);
+
+// Boot-time bridge install keeps legacy runtime calls safe even before React effects flush.
+installCardEffectBridge();
 
 flushSync(() => {
   root.render(<App />);

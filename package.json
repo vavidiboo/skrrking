@@ -2,8 +2,9 @@
   "name": "skull-king-activity",
   "private": true,
   "scripts": {
-    "build": "esbuild discord_activity_skullking/app/src/main.jsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js",
-    "build:watch": "esbuild discord_activity_skullking/app/src/main.jsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js --watch"
+    "build": "esbuild discord_activity_skullking/app/src/main.tsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js",
+    "build:watch": "esbuild discord_activity_skullking/app/src/main.tsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js --watch",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
@@ -11,6 +12,9 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "esbuild": "^0.27.0"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.27.0",
+    "typescript": "^5.9.3"
   }
 }

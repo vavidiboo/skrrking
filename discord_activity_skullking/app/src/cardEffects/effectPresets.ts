@@ -1,4 +1,7 @@
-const BASE_PRESET = {
+import type { CardEffectPreset, CardEffectType, GameCardLike } from "../types";
+
+const BASE_PRESET: CardEffectPreset = {
+  effectType: "default",
   themeClass: "default",
   flashColor: "rgba(255, 236, 173, 0.82)",
   auraColors: ["#ffe9a8", "#f1b347", "#ffffff"],
@@ -17,21 +20,28 @@ const BASE_PRESET = {
   impactRing: true,
   resultGlow: "gold",
   emblem: "none",
+  arcLift: 72,
 };
 
-export const CARD_EFFECT_PRESETS = {
+export const CARD_EFFECT_PRESETS: Record<CardEffectType, CardEffectPreset> = {
   default: BASE_PRESET,
   suit: {
     ...BASE_PRESET,
+    effectType: "suit",
     themeClass: "suit",
     flashColor: "rgba(255, 243, 194, 0.7)",
     auraColors: ["#ffe39d", "#d4a73c", "#fff5d5"],
     particleCount: 8,
     travelScale: 1.14,
+    arrivalScale: 1.02,
+    moveDuration: 0.4,
     totalDuration: 1.2,
+    impactRing: false,
+    arcLift: 46,
   },
   pirate: {
     ...BASE_PRESET,
+    effectType: "pirate",
     themeClass: "pirate",
     flashColor: "rgba(255, 114, 82, 0.84)",
     auraColors: ["#ffb567", "#ff5f47", "#ffe2c6"],
@@ -47,9 +57,11 @@ export const CARD_EFFECT_PRESETS = {
     totalDuration: 1.26,
     resultGlow: "ember",
     emblem: "slash",
+    arcLift: 86,
   },
   mermaid: {
     ...BASE_PRESET,
+    effectType: "mermaid",
     themeClass: "mermaid",
     flashColor: "rgba(109, 211, 255, 0.72)",
     auraColors: ["#b0f2ff", "#54b8ff", "#dffcff"],
@@ -63,9 +75,11 @@ export const CARD_EFFECT_PRESETS = {
     totalDuration: 1.46,
     resultGlow: "sea",
     emblem: "wave",
+    arcLift: 80,
   },
   escape: {
     ...BASE_PRESET,
+    effectType: "escape",
     themeClass: "escape",
     flashColor: "rgba(210, 224, 255, 0.52)",
     auraColors: ["#f5f7ff", "#afc8ff", "#e7edff"],
@@ -79,9 +93,75 @@ export const CARD_EFFECT_PRESETS = {
     resolveDelay: 0.34,
     totalDuration: 0.96,
     resultGlow: "mist",
+    impactRing: false,
+    arcLift: 38,
+  },
+  tigress: {
+    ...BASE_PRESET,
+    effectType: "tigress",
+    themeClass: "tigress",
+    flashColor: "rgba(255, 196, 82, 0.9)",
+    auraColors: ["#ffe8a6", "#ffb347", "#fff8e1"],
+    dimBackground: true,
+    shakeStrength: "medium",
+    particleStyle: "slash",
+    particleCount: 14,
+    particleSpread: 174,
+    travelScale: 1.24,
+    arrivalScale: 1.07,
+    rotation: -7,
+    moveDuration: 0.44,
+    resolveDelay: 0.54,
+    totalDuration: 1.38,
+    resultGlow: "shock",
+    emblem: "slash",
+    arcLift: 92,
+  },
+  kraken: {
+    ...BASE_PRESET,
+    effectType: "kraken",
+    themeClass: "kraken",
+    flashColor: "rgba(109, 235, 220, 0.86)",
+    auraColors: ["#b4fff4", "#4bd7cb", "#e4fffb"],
+    dimBackground: true,
+    shakeStrength: "heavy",
+    particleStyle: "water",
+    particleCount: 18,
+    particleSpread: 178,
+    travelScale: 1.28,
+    arrivalScale: 1.08,
+    rotation: 4,
+    moveDuration: 0.5,
+    resolveDelay: 0.62,
+    totalDuration: 1.58,
+    resultGlow: "sea",
+    emblem: "wave",
+    arcLift: 96,
+  },
+  white_whale: {
+    ...BASE_PRESET,
+    effectType: "white_whale",
+    themeClass: "white-whale",
+    flashColor: "rgba(215, 245, 255, 0.92)",
+    auraColors: ["#f0fbff", "#9fdfff", "#ffffff"],
+    dimBackground: true,
+    shakeStrength: "heavy",
+    particleStyle: "mist",
+    particleCount: 16,
+    particleSpread: 182,
+    travelScale: 1.26,
+    arrivalScale: 1.08,
+    rotation: -3,
+    moveDuration: 0.52,
+    resolveDelay: 0.64,
+    totalDuration: 1.62,
+    resultGlow: "sea",
+    emblem: "wave",
+    arcLift: 104,
   },
   skull_king: {
     ...BASE_PRESET,
+    effectType: "skull_king",
     themeClass: "skull-king",
     flashColor: "rgba(255, 208, 92, 0.92)",
     auraColors: ["#ffd76a", "#9f61ff", "#fff1bf"],
@@ -99,9 +179,11 @@ export const CARD_EFFECT_PRESETS = {
     moveEase: [0.16, 0.96, 0.22, 1],
     resultGlow: "legendary",
     emblem: "crown",
+    arcLift: 110,
   },
   special: {
     ...BASE_PRESET,
+    effectType: "special",
     themeClass: "special",
     flashColor: "rgba(255, 231, 130, 0.9)",
     auraColors: ["#fff0a8", "#ff8b5e", "#ffffff"],
@@ -119,7 +201,7 @@ export const CARD_EFFECT_PRESETS = {
   },
 };
 
-export function inferEffectType(card = {}) {
+export function inferEffectType(card: GameCardLike = {}): CardEffectType {
   const rawType = String(card.effectType || card.type || card.kind || "").trim().toLowerCase();
   const safeType = rawType.replace(/\s+/g, "_");
 
@@ -138,16 +220,28 @@ export function inferEffectType(card = {}) {
   if (safeType.includes("escape") || safeType.includes("run")) {
     return "escape";
   }
-  if (safeType.includes("kraken") || safeType.includes("whale") || safeType.includes("tigress") || safeType.includes("special")) {
+  if (safeType.includes("tigress")) {
+    return "tigress";
+  }
+  if (safeType.includes("kraken")) {
+    return "kraken";
+  }
+  if (safeType.includes("whale")) {
+    return "white_whale";
+  }
+  if (safeType.includes("special")) {
     return "special";
   }
   if (safeType.includes("suit") || safeType.includes("number")) {
     return "suit";
   }
-  return CARD_EFFECT_PRESETS[safeType] ? safeType : "default";
+  return safeType in CARD_EFFECT_PRESETS ? (safeType as CardEffectType) : "default";
 }
 
-export function resolveCardEffectPreset(effectType, card = {}) {
+export function resolveCardEffectPreset(
+  effectType?: CardEffectType | null,
+  card: GameCardLike = {},
+): CardEffectPreset {
   const resolvedType = effectType || inferEffectType(card);
   const preset = CARD_EFFECT_PRESETS[resolvedType] || CARD_EFFECT_PRESETS.default;
   return {
@@ -155,4 +249,3 @@ export function resolveCardEffectPreset(effectType, card = {}) {
     effectType: resolvedType,
   };
 }
-

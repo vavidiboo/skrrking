@@ -1,21 +1,91 @@
 import React, { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import type { ErrorInfo, PropsWithChildren } from "react";
 import { createPortal } from "react-dom";
 import shellHtml from "./shell.html";
-import { getReactUiSnapshot, subscribeReactUi } from "./legacyBridge.js";
-import { CardEffectLayer } from "./cardEffects/CardEffectLayer.jsx";
-import { installCardEffectBridge } from "./cardEffects/effectBus.js";
+import { getReactUiSnapshot, subscribeReactUi } from "./legacyBridge";
+import { CardEffectLayer } from "./cardEffects/CardEffectLayer";
+import { installCardEffectBridge } from "./cardEffects/effectBus";
+import type { ConnectionState, CurrentView, LobbyPlayerState, ReactUiState, SessionPlayerSnapshot, SessionSnapshotResponse } from "./types";
 
-class ShellErrorBoundary extends Component {
-  constructor(props) {
+interface ShellErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+interface ShellFragments {
+  splashHtml: string;
+  toastHtml: string;
+  homeInnerHtml: string;
+  homeClassName: string;
+  lobbyInnerHtml: string;
+  lobbyClassName: string;
+  gameInnerHtml: string;
+  gameClassName: string;
+  dialogsHtml: string;
+}
+
+interface HtmlFragmentProps {
+  html: string;
+  marker: string;
+}
+
+interface SyncSplashElementOptions {
+  visible: boolean;
+  mode: string;
+  currentView: CurrentView;
+}
+
+interface ShellPanelProps {
+  id: string;
+  visible: boolean;
+  className: string;
+  html: string;
+}
+
+interface LobbySeatLayout {
+  rx: number;
+  ry: number;
+  selfY: number;
+  scale: number;
+}
+
+interface LobbySeatPlayer extends SessionPlayerSnapshot {
+  id?: string;
+  name?: string;
+  hostId?: string;
+  connection_state?: ConnectionState | string;
+  state?: LobbyPlayerState | string;
+  avatar_url?: string | null;
+  afk?: boolean;
+}
+
+interface LobbySeatModel {
+  player: LobbySeatPlayer | null;
+  layout: LobbySeatLayout;
+  xPct: number;
+  yPct: number;
+  isSelf: boolean;
+}
+
+interface LobbySeatProps extends LobbySeatModel {}
+
+interface LobbyPortalsProps {
+  gameState: SessionSnapshotResponse | null;
+  viewerId: string;
+  active: boolean;
+}
+
+class ShellErrorBoundary extends Component<PropsWithChildren, ShellErrorBoundaryState> {
+  constructor(props: PropsWithChildren) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): ShellErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, info) {
+  componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error("[SkullKing][ReactShell] Uncaught error in React shell:", error, info);
   }
 
@@ -45,7 +115,7 @@ class ShellErrorBoundary extends Component {
   }
 }
 
-let cachedShellFragments = null;
+let cachedShellFragments: ShellFragments | null = null;
 
 function shellWithoutHidden(className = "") {
   return String(className)
@@ -55,13 +125,13 @@ function shellWithoutHidden(className = "") {
     .join(" ");
 }
 
-function getShellFragments() {
+function getShellFragments(): ShellFragments {
   if (cachedShellFragments) {
     return cachedShellFragments;
   }
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<body>${shellHtml}</body>`, "text/html");
-  const read = (selector) => {
+  const read = (selector: string): Element => {
     const node = doc.querySelector(selector);
     if (!node) {
       throw new Error(`Missing shell fragment: ${selector}`);
@@ -85,15 +155,15 @@ function getShellFragments() {
   return cachedShellFragments;
 }
 
-function normalizeLobbyPlayerState(state) {
+function normalizeLobbyPlayerState(state: unknown): LobbyPlayerState {
   const safe = String(state || "").trim().toLowerCase();
   if (["not_ready", "ready", "bid", "playing", "finished"].includes(safe)) {
-    return safe;
+    return safe as LobbyPlayerState;
   }
   return "not_ready";
 }
 
-function connectionStateLabel(state) {
+function connectionStateLabel(state: unknown): string {
   const safe = String(state || "").trim().toLowerCase();
   if (safe === "reconnecting") {
     return "Reconnecting";
@@ -104,12 +174,12 @@ function connectionStateLabel(state) {
   return "Connected";
 }
 
-function playerInitial(name) {
+function playerInitial(name: unknown): string {
   const safe = String(name || "?").trim();
   return safe ? safe.charAt(0).toUpperCase() : "?";
 }
 
-function avatarColor(seed) {
+function avatarColor(seed: unknown): string {
   const text = String(seed || "?");
   let hash = 0;
   for (let index = 0; index < text.length; index += 1) {
@@ -120,12 +190,12 @@ function avatarColor(seed) {
   return `linear-gradient(180deg, hsl(${hue} 70% 66%), hsl(${(hue + 36) % 360} 55% 42%))`;
 }
 
-function useReactUiState() {
+function useReactUiState(): ReactUiState {
   return useSyncExternalStore(subscribeReactUi, getReactUiSnapshot, getReactUiSnapshot);
 }
 
-function useDomTarget(selector) {
-  const [target, setTarget] = useState(() => document.querySelector(selector));
+function useDomTarget(selector: string): Element | null {
+  const [target, setTarget] = useState<Element | null>(() => document.querySelector(selector));
 
   useEffect(() => {
     // 즉각 시도
@@ -150,7 +220,7 @@ function useDomTarget(selector) {
   return target;
 }
 
-function useTextTarget(selector, value, active = true) {
+function useTextTarget(selector: string, value: string, active = true): void {
   const target = useDomTarget(selector);
 
   useLayoutEffect(() => {
@@ -165,8 +235,8 @@ function useTextTarget(selector, value, active = true) {
   }, [active, target, value]);
 }
 
-function HtmlFragment({ html, marker }) {
-  const ref = useRef(null);
+function HtmlFragment({ html, marker }: HtmlFragmentProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     const node = ref.current;
@@ -184,7 +254,7 @@ function HtmlFragment({ html, marker }) {
   return <div ref={ref} data-shell-fragment={marker} />;
 }
 
-function syncSplashElement({ visible, mode, currentView }) {
+function syncSplashElement({ visible, mode, currentView }: SyncSplashElementOptions): void {
   const splash = document.getElementById("splash");
   if (!splash) {
     return;
@@ -208,8 +278,8 @@ function syncSplashElement({ visible, mode, currentView }) {
   splash.style.pointerEvents = "";
 }
 
-function ShellPanel({ id, visible, className, html }) {
-  const ref = useRef(null);
+function ShellPanel({ id, visible, className, html }: ShellPanelProps) {
+  const ref = useRef<HTMLElement | null>(null);
 
   useLayoutEffect(() => {
     const node = ref.current;
@@ -234,7 +304,7 @@ function ShellPanel({ id, visible, className, html }) {
   );
 }
 
-function LobbySeat({ player, layout, xPct, yPct, isSelf }) {
+function LobbySeat({ player, layout, xPct, yPct, isSelf }: LobbySeatProps) {
   const style = {
     left: `calc(50% + ${xPct}%)`,
     top: `calc(50% + ${yPct}%)`,
@@ -308,20 +378,20 @@ function LobbySeat({ player, layout, xPct, yPct, isSelf }) {
   );
 }
 
-function buildLobbySeatModel(gameState, viewerId) {
-  const players = Array.isArray(gameState?.players) ? gameState.players : [];
+function buildLobbySeatModel(gameState: SessionSnapshotResponse | null | undefined, viewerId: string): LobbySeatModel[] {
+  const players = (Array.isArray(gameState?.players) ? gameState.players : []) as LobbySeatPlayer[];
   const maxPlayers = Math.max(2, Math.min(8, Number(gameState?.settings?.max_players || gameState?.settings?.maxPlayers || 6)));
   const mePlayer =
     players.find((player) => String(player?.id || "") === String(viewerId || "")) ||
     (players.length === 1 ? players[0] : null);
   const others = players.filter((player) => String(player?.id || "") !== String(viewerId || ""));
-  const slots = mePlayer ? [mePlayer, ...others] : [...players];
+  const slots: Array<LobbySeatPlayer | null> = mePlayer ? [mePlayer, ...others] : [...players];
   const hasOpenSlot = slots.length < maxPlayers;
   if (hasOpenSlot) {
     slots.push(null);
   }
   const visibleSeatCount = Math.max(2, Math.min(maxPlayers, slots.length));
-  const layoutByCount = {
+  const layoutByCount: Record<number, LobbySeatLayout> = {
     2: { rx: 34, ry: 26, selfY: 28, scale: 0.98 },
     3: { rx: 38, ry: 27, selfY: 29, scale: 0.96 },
     4: { rx: 41, ry: 28, selfY: 30, scale: 0.94 },
@@ -332,7 +402,7 @@ function buildLobbySeatModel(gameState, viewerId) {
   };
   const layout = layoutByCount[visibleSeatCount] || layoutByCount[6];
 
-  const positionForIndex = (index) => {
+  const positionForIndex = (index: number): { xPct: number; yPct: number } => {
     if (!mePlayer) {
       const angle = (-Math.PI / 2) + ((Math.PI * 2) / visibleSeatCount) * index;
       return {
@@ -380,7 +450,7 @@ function buildLobbySeatModel(gameState, viewerId) {
   });
 }
 
-function LobbyPortals({ gameState, viewerId, active }) {
+function LobbyPortals({ gameState, viewerId, active }: LobbyPortalsProps) {
   const playerListTarget = useDomTarget("#playerList");
   const maxPlayers = Number(gameState?.settings?.max_players || gameState?.settings?.maxPlayers || 6);
 
