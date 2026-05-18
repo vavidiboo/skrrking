@@ -25951,6 +25951,12 @@ function renderCard(card, options = {}) {
   if (options.blocked) {
     cardEl.classList.add("blocked", "illegal");
   }
+  applyHandCardState(cardEl, {
+    playable: Boolean(options.playable),
+    legal: Boolean(options.legal),
+    blocked: Boolean(options.blocked),
+    selected: Boolean(options.selected)
+  });
   if (options.x != null) {
     cardEl.style.setProperty("--x", `${options.x}px`);
   }
@@ -27299,6 +27305,7 @@ function resetHandDragVisual() {
   drag2.element.style.removeProperty("transform");
   drag2.element.style.removeProperty("transition");
   drag2.element.style.removeProperty("z-index");
+  applyHandCardState(drag2.element, { state: "idle" });
   appState.handDrag = null;
   clearHandInspectState({ origin: "drag" });
 }
@@ -27317,10 +27324,16 @@ function updateHandDragVisual(event) {
   const pullX = dx * (desktopPointer ? 0.38 : 0.48);
   const pullY = Math.min(16, dy * 0.15) - lift;
   const tilt = Math.max(-18, Math.min(18, dx * (desktopPointer ? 0.06 : 0.08)));
+  const heldLongEnough = Date.now() - Number(drag2.startedAt || 0) >= HAND_DRAG_MIN_HOLD_MS;
+  const liftReady = lift >= commitDistance;
+  const commitReady = liftReady && heldLongEnough;
   drag2.element.classList.add("dragging");
-  drag2.element.classList.toggle("drag-commit", lift >= commitDistance);
+  drag2.element.classList.toggle("drag-commit", commitReady);
   trickCenter?.classList.add("drag-target-active");
-  trickCenter?.classList.toggle("drag-target-ready", lift >= commitDistance);
+  trickCenter?.classList.toggle("drag-target-ready", commitReady);
+  applyHandCardState(drag2.element, {
+    state: commitReady ? "pressed" : "held"
+  });
   drag2.element.style.transition = "none";
   drag2.element.style.zIndex = "140";
   drag2.element.style.transform = `translate(calc(-50% + ${drag2.baseX}px + ${pullX}px), calc(${drag2.baseY}px + ${pullY}px)) rotate(${drag2.baseRot + tilt}deg) scale(${desktopPointer ? 1.18 : 1.16})`;
@@ -27333,8 +27346,9 @@ function endHandCardDrag(event) {
   const lifted = Math.max(0, -Number(drag2.lastDy || 0));
   const desktopPointer = window.matchMedia?.("(pointer: fine)")?.matches;
   const commitDistance = desktopPointer ? Math.max(110, Math.min(220, window.innerHeight * 0.2)) : Math.max(90, Math.min(180, window.innerHeight * 0.18));
-  const shouldCommit = lifted >= commitDistance && drag2.clickable;
-  appState.handDragSuppressUntil = Date.now() + 280;
+  const heldLongEnough = Date.now() - Number(drag2.startedAt || 0) >= HAND_DRAG_MIN_HOLD_MS;
+  const shouldCommit = lifted >= commitDistance && heldLongEnough && drag2.clickable;
+  appState.handDragSuppressUntil = Date.now() + HAND_DRAG_SUPPRESS_MS;
   window.removeEventListener("pointermove", updateHandDragVisual);
   window.removeEventListener("pointerup", endHandCardDrag);
   window.removeEventListener("pointercancel", endHandCardDrag);
@@ -27361,6 +27375,7 @@ function startHandCardDrag(event, options) {
     pointerId: event.pointerId,
     startX: event.clientX,
     startY: event.clientY,
+    startedAt: Date.now(),
     lastDx: 0,
     lastDy: 0,
     index: options.index,
@@ -27536,16 +27551,41 @@ function buildCardVisualClass(card) {
   const safeSuit = String(card?.suit || "").toLowerCase().replace(/[^a-z0-9_-]/g, "");
   return `type-${safeType}${safeSuit ? ` suit-${safeSuit}` : ""}`;
 }
+function resolveHandCardState({ playable, legal, blocked, selected, dragging, dragCommit, resolving }) {
+  if (resolving) return "resolving";
+  if (dragCommit) return "pressed";
+  if (dragging) return "held";
+  if (selected) return "selected";
+  if (playable && legal) return "playable";
+  if (blocked) return "disabled";
+  return "idle";
+}
+function applyHandCardState(cardEl, options = {}) {
+  if (!(cardEl instanceof Element)) {
+    return;
+  }
+  const state2 = HAND_CARD_DATA_STATES.has(options.state) ? options.state : resolveHandCardState(options);
+  cardEl.dataset.handState = state2;
+  if (state2 === "disabled") {
+    cardEl.setAttribute("aria-disabled", "true");
+  } else {
+    cardEl.removeAttribute("aria-disabled");
+  }
+}
 function attachCardTilt(cardEl) {
+  function isPlayable() {
+    return cardEl.classList.contains("playable") && !cardEl.classList.contains("blocked");
+  }
   function onMove(e2) {
     if (appState.handDrag) return;
+    if (!isPlayable()) return;
     const rect = cardEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const dx = (e2.clientX - cx) / (rect.width / 2);
     const dy = (e2.clientY - cy) / (rect.height / 2);
-    const tiltY = (dx * 14).toFixed(1);
-    const tiltX = (-dy * 9).toFixed(1);
+    const tiltY = (dx * 8).toFixed(1);
+    const tiltX = (-dy * 5).toFixed(1);
     cardEl.style.setProperty("--tilt-x", `${tiltX}deg`);
     cardEl.style.setProperty("--tilt-y", `${tiltY}deg`);
   }
@@ -28673,7 +28713,7 @@ function onScoreDrawerDragEnd(event) {
   window.removeEventListener("pointerup", onScoreDrawerDragEnd);
   window.removeEventListener("pointercancel", onScoreDrawerDragEnd);
 }
-var DEFAULT_API_BASE, DEFAULT_CLIENT_ID, UNSET_CLIENT_ID, TURN_LIMIT_SECONDS, PRE_BID_DELAY_SECONDS, BOOT_SPLASH_MIN_VISIBLE_MS, ACTION_SPLASH_MIN_VISIBLE_MS, STATE_LONG_POLL_WAIT_MS, STATE_POLL_RETRY_MS, STATE_POLL_RESUME_MS, WS_OPEN_TIMEOUT_MS, WS_QUICK_CLOSE_THRESHOLD_MS, PING_PROBE_INTERVAL_MS, PING_STALE_AFTER_MS, WS_PING_TIMEOUT_MS, SPLASH_BACKGROUND_PATHS, CONNECTION_STATUS, ROOM_STATUS, GAME_PHASE, VIEWER_ROLE, PENDING_ACTION_KIND, homePanel, lobbyPanel, gamePanel, sessionInput, nameInput, roomList, refreshRoomsBtn, playNowBtn, createRoomBtn, homePingChip, createRoomDialog, findRoomDialog, joinPasswordDialog, joinPasswordRoomName, joinPasswordInput, joinPasswordError, joinPasswordCancelBtn, joinPasswordSubmitBtn, refreshRoomsInModalBtn, closeFindRoomBtn, roomNameInput, maxPlayersInput, bonusEnabledInput, advancedRulesInput, useRoomPasswordInput, roomPasswordFieldWrap, roomPasswordInput, createRoomSubtitle, createRoomStepMode, createRoomStepOptions, createRoomNextBtn, createRoomBackBtn, createModeCasual, createModeAdvanced, confirmCreateRoomBtn, cancelCreateRoomBtn, startBtn, lobbyBackBtn, lobbyInviteBtn, lobbyInfo, playerList, lobbyTopbarDisplayName, lobbyRoomCode, lobbyPlayersChip, lobbyPingChip, lobbyTurnTimerVal, lobbyTurnTimerDown, lobbyTurnTimerUp, lobbyBonusToggle, lobbyAdvancedToggle, lobbySpectatorsToggle, roundTitle, phaseBadge, turnBadge, connectionBadge, gamePingBadge, turnProgress, turnProgressFill, turnProgressMeta, playerRing, trickCenter, tableCinematicFx, gameMiniBidValue, gameMiniWonValue, gameMiniScoreValue, reconnectOverlay, reconnectTitle, reconnectBody, scoreDialog, closeScoreDrawerBtn, scoreDrawerHeader, bidDialog, bidDialogInput, bidMinusBtn, bidPlusBtn, bidDialogSubmitBtn, bidDialogHint, bidDialogMeta, interactionHud, interactionHudKicker, interactionHudTitle, interactionHudBody, handArea, scoreRows, scoreTabScores, scoreTabHistory, scoreTabGuide, scoreScoresPanel, scoreHistoryPanel, scoreGuidePanel, scoreHistoryRows, gameForfeitBtn, nextRoundBtn, eventDialog, eventDialogTitle, eventDialogBody, roundResultDialog, roundResultTitle, roundResultBody, closeRoundResultBtn, finishDialog, finishToLobbyBtn, finishToHomeBtn, finishResultTitle, finishResultSub, finishResultCoin, finishSummaryText, finishSummaryPill, finishResultRows, finishEventChips, logDialog, closeLogBtn, logArea, toast, tigressDialog, splash, splashStatus, splashProgressFill, splashPercent, splashDetail, appState, splashCta, TURN_TIMER_OPTIONS, SUIT_SYMBOLS, COMPACT_SUIT_LABELS, SPECIAL_ICONS, SPECIAL_KO, SUIT_NAMES_KO, PREVIEW_RULE_LABELS, ROPE_SHOW_THRESHOLD;
+var DEFAULT_API_BASE, DEFAULT_CLIENT_ID, UNSET_CLIENT_ID, TURN_LIMIT_SECONDS, PRE_BID_DELAY_SECONDS, BOOT_SPLASH_MIN_VISIBLE_MS, ACTION_SPLASH_MIN_VISIBLE_MS, STATE_LONG_POLL_WAIT_MS, STATE_POLL_RETRY_MS, STATE_POLL_RESUME_MS, WS_OPEN_TIMEOUT_MS, WS_QUICK_CLOSE_THRESHOLD_MS, PING_PROBE_INTERVAL_MS, PING_STALE_AFTER_MS, WS_PING_TIMEOUT_MS, SPLASH_BACKGROUND_PATHS, CONNECTION_STATUS, ROOM_STATUS, GAME_PHASE, VIEWER_ROLE, PENDING_ACTION_KIND, homePanel, lobbyPanel, gamePanel, sessionInput, nameInput, roomList, refreshRoomsBtn, playNowBtn, createRoomBtn, homePingChip, createRoomDialog, findRoomDialog, joinPasswordDialog, joinPasswordRoomName, joinPasswordInput, joinPasswordError, joinPasswordCancelBtn, joinPasswordSubmitBtn, refreshRoomsInModalBtn, closeFindRoomBtn, roomNameInput, maxPlayersInput, bonusEnabledInput, advancedRulesInput, useRoomPasswordInput, roomPasswordFieldWrap, roomPasswordInput, createRoomSubtitle, createRoomStepMode, createRoomStepOptions, createRoomNextBtn, createRoomBackBtn, createModeCasual, createModeAdvanced, confirmCreateRoomBtn, cancelCreateRoomBtn, startBtn, lobbyBackBtn, lobbyInviteBtn, lobbyInfo, playerList, lobbyTopbarDisplayName, lobbyRoomCode, lobbyPlayersChip, lobbyPingChip, lobbyTurnTimerVal, lobbyTurnTimerDown, lobbyTurnTimerUp, lobbyBonusToggle, lobbyAdvancedToggle, lobbySpectatorsToggle, roundTitle, phaseBadge, turnBadge, connectionBadge, gamePingBadge, turnProgress, turnProgressFill, turnProgressMeta, playerRing, trickCenter, tableCinematicFx, gameMiniBidValue, gameMiniWonValue, gameMiniScoreValue, reconnectOverlay, reconnectTitle, reconnectBody, scoreDialog, closeScoreDrawerBtn, scoreDrawerHeader, bidDialog, bidDialogInput, bidMinusBtn, bidPlusBtn, bidDialogSubmitBtn, bidDialogHint, bidDialogMeta, interactionHud, interactionHudKicker, interactionHudTitle, interactionHudBody, handArea, scoreRows, scoreTabScores, scoreTabHistory, scoreTabGuide, scoreScoresPanel, scoreHistoryPanel, scoreGuidePanel, scoreHistoryRows, gameForfeitBtn, nextRoundBtn, eventDialog, eventDialogTitle, eventDialogBody, roundResultDialog, roundResultTitle, roundResultBody, closeRoundResultBtn, finishDialog, finishToLobbyBtn, finishToHomeBtn, finishResultTitle, finishResultSub, finishResultCoin, finishSummaryText, finishSummaryPill, finishResultRows, finishEventChips, logDialog, closeLogBtn, logArea, toast, tigressDialog, splash, splashStatus, splashProgressFill, splashPercent, splashDetail, appState, splashCta, TURN_TIMER_OPTIONS, SUIT_SYMBOLS, COMPACT_SUIT_LABELS, SPECIAL_ICONS, SPECIAL_KO, SUIT_NAMES_KO, PREVIEW_RULE_LABELS, ROPE_SHOW_THRESHOLD, HAND_CARD_DATA_STATES, HAND_DRAG_MIN_HOLD_MS, HAND_DRAG_SUPPRESS_MS;
 var init_legacy_app = __esm({
   "discord_activity_skullking/app/legacy-app.js"() {
     "use strict";
@@ -29410,6 +29450,17 @@ var init_legacy_app = __esm({
       white_whale_discards_special_only_trick: "\uBC31\uACBD\uC774 \uB4F1\uC7A5\uD588\uC9C0\uB9CC \uC22B\uC790 \uCE74\uB4DC\uAC00 \uC5C6\uC5B4 \uD2B8\uB9AD\uC774 \uBC84\uB824\uC9D1\uB2C8\uB2E4."
     };
     ROPE_SHOW_THRESHOLD = 15;
+    HAND_CARD_DATA_STATES = /* @__PURE__ */ new Set([
+      "idle",
+      "playable",
+      "disabled",
+      "selected",
+      "held",
+      "pressed",
+      "resolving"
+    ]);
+    HAND_DRAG_MIN_HOLD_MS = 110;
+    HAND_DRAG_SUPPRESS_MS = 280;
   }
 });
 

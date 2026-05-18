@@ -5100,6 +5100,15 @@ function renderCard(card, options = {}) {
   if (options.blocked) {
     cardEl.classList.add("blocked", "illegal");
   }
+  // Apply the canonical 9-state grammar via data-hand-state. Existing
+  // boolean classes above stay in place so legacy styles and effectBus
+  // sanitisation keep working.
+  applyHandCardState(cardEl, {
+    playable: Boolean(options.playable),
+    legal: Boolean(options.legal),
+    blocked: Boolean(options.blocked),
+    selected: Boolean(options.selected),
+  });
   if (options.x != null) {
     cardEl.style.setProperty("--x", `${options.x}px`);
   }
@@ -6692,6 +6701,10 @@ function resetHandDragVisual() {
   drag.element.style.removeProperty("transform");
   drag.element.style.removeProperty("transition");
   drag.element.style.removeProperty("z-index");
+  // Reset the canonical state. The next renderHand pass will reapply the
+  // correct playable/disabled/idle state on the new wrapper, but we clear
+  // it here so the "still in DOM" intermediate frame does not lie.
+  applyHandCardState(drag.element, { state: "idle" });
   appState.handDrag = null;
   clearHandInspectState({ origin: "drag" });
 }
@@ -6715,10 +6728,20 @@ function updateHandDragVisual(event) {
   const pullY = Math.min(16, dy * 0.15) - lift;
   const tilt = Math.max(-18, Math.min(18, dx * (desktopPointer ? 0.06 : 0.08)));
 
+  // A drag only counts as "ready to commit" when it has lifted enough AND
+  // has been held long enough. The hold gate stops fast horizontal swipes
+  // from auto-committing if the player only flicked the card.
+  const heldLongEnough = Date.now() - Number(drag.startedAt || 0) >= HAND_DRAG_MIN_HOLD_MS;
+  const liftReady = lift >= commitDistance;
+  const commitReady = liftReady && heldLongEnough;
+
   drag.element.classList.add("dragging");
-  drag.element.classList.toggle("drag-commit", lift >= commitDistance);
+  drag.element.classList.toggle("drag-commit", commitReady);
   trickCenter?.classList.add("drag-target-active");
-  trickCenter?.classList.toggle("drag-target-ready", lift >= commitDistance);
+  trickCenter?.classList.toggle("drag-target-ready", commitReady);
+  applyHandCardState(drag.element, {
+    state: commitReady ? "pressed" : "held",
+  });
   drag.element.style.transition = "none";
   drag.element.style.zIndex = "140";
   drag.element.style.transform =
@@ -6735,8 +6758,12 @@ function endHandCardDrag(event) {
   const commitDistance = desktopPointer
     ? Math.max(110, Math.min(220, window.innerHeight * 0.2))
     : Math.max(90, Math.min(180, window.innerHeight * 0.18));
-  const shouldCommit = lifted >= commitDistance && drag.clickable;
-  appState.handDragSuppressUntil = Date.now() + 280;
+  // Same dual gate as updateHandDragVisual: lifted AND held long enough.
+  const heldLongEnough = Date.now() - Number(drag.startedAt || 0) >= HAND_DRAG_MIN_HOLD_MS;
+  const shouldCommit = lifted >= commitDistance && heldLongEnough && drag.clickable;
+  // Suppress the synthetic click that follows pointerup so a freshly dragged
+  // card is not double-played by an accidental click handler.
+  appState.handDragSuppressUntil = Date.now() + HAND_DRAG_SUPPRESS_MS;
   window.removeEventListener("pointermove", updateHandDragVisual);
   window.removeEventListener("pointerup", endHandCardDrag);
   window.removeEventListener("pointercancel", endHandCardDrag);
@@ -6763,6 +6790,7 @@ function startHandCardDrag(event, options) {
     pointerId: event.pointerId,
     startX: event.clientX,
     startY: event.clientY,
+    startedAt: Date.now(),
     lastDx: 0,
     lastDy: 0,
     index: options.index,
@@ -6949,18 +6977,100 @@ function buildCardVisualClass(card) {
   return `type-${safeType}${safeSuit ? ` suit-${safeSuit}` : ""}`;
 }
 
+// ── Hand card interaction grammar ─────────────────────────────────────────
+//
+// Stage 6 normalises hand-card state expression around the 9-state grammar
+// from docs/uiux-direction.md ("Card Interaction Language"):
+//
+//   idle | hovered | pressed | held | selected | playable | disabled | focused | resolving
+//
+// The hand-card DOM still carries the existing legacy boolean classes
+// (.playable, .legal, .selected, .blocked, .illegal, .dragging, .drag-commit,
+//  .hs-dealing, .hs-playing) so styles.css and effectBus.sanitizeSourceClassName
+// keep working without churn. On top of that, every hand-card now also
+// exposes a single canonical state via `data-hand-state`. Styles can hook
+// into that attribute when they need a non-conflicting strong rule (e.g.
+// the new selected emphasis or the diagonal pattern on illegal cards).
+//
+// Mapping rule (highest priority wins):
+//   .hs-playing                                 -> resolving
+//   .dragging  / .drag-commit                   -> held / pressed
+//   .selected                                   -> selected
+//   .playable && .legal                         -> playable
+//   .blocked || .illegal                        -> disabled
+//   default                                     -> idle
+//
+// Hover and focus are transient runtime states. They are not persisted on
+// the dataset because they would cause attribute thrash and they are
+// already handled by :hover and :focus-visible in the stylesheet.
+
+const HAND_CARD_DATA_STATES = new Set([
+  "idle",
+  "playable",
+  "disabled",
+  "selected",
+  "held",
+  "pressed",
+  "resolving",
+]);
+
+function resolveHandCardState({ playable, legal, blocked, selected, dragging, dragCommit, resolving }) {
+  if (resolving) return "resolving";
+  if (dragCommit) return "pressed";
+  if (dragging) return "held";
+  if (selected) return "selected";
+  if (playable && legal) return "playable";
+  if (blocked) return "disabled";
+  return "idle";
+}
+
+function applyHandCardState(cardEl, options = {}) {
+  if (!(cardEl instanceof Element)) {
+    return;
+  }
+  const state = HAND_CARD_DATA_STATES.has(options.state) ? options.state : resolveHandCardState(options);
+  cardEl.dataset.handState = state;
+  // Mirror disabled state to ARIA so screen readers and keyboard users get
+  // a consistent signal. tabindex itself is owned by renderHand.
+  if (state === "disabled") {
+    cardEl.setAttribute("aria-disabled", "true");
+  } else {
+    cardEl.removeAttribute("aria-disabled");
+  }
+}
+
+// Drag protection thresholds. These exist so the values are reviewable in
+// one place and so accidental fast swipes do not commit a card play.
+//
+//   HAND_DRAG_MIN_HOLD_MS   - minimum pointer-down duration before a drag
+//                             can commit. Protects against fast swipes.
+//   HAND_DRAG_SUPPRESS_MS   - window after pointerup during which a click
+//                             on the just-dragged card is ignored.
+const HAND_DRAG_MIN_HOLD_MS = 110;
+const HAND_DRAG_SUPPRESS_MS = 280;
+
 // ── Hearthstone 3D tilt ──────────────────────────────────────────────────
 
 function attachCardTilt(cardEl) {
+  // Stage 6: tilt is a desktop-only "this card is responsive" cue.
+  // Reasons for the changes vs. the previous version:
+  //   - amplitudes 14/9 deg felt cartoony; reduced to 8/5
+  //   - tilt should not run on non-playable cards (avoids a false
+  //     "you can play me" signal)
+  //   - tilt freezes during drag (drag drives its own transform)
+  function isPlayable() {
+    return cardEl.classList.contains("playable") && !cardEl.classList.contains("blocked");
+  }
   function onMove(e) {
     if (appState.handDrag) return;
+    if (!isPlayable()) return;
     const rect = cardEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const dx = (e.clientX - cx) / (rect.width / 2);   // -1 … 1
     const dy = (e.clientY - cy) / (rect.height / 2);  // -1 … 1
-    const tiltY = (dx * 14).toFixed(1);   // left/right tilt
-    const tiltX = (-dy * 9).toFixed(1);  // up/down tilt
+    const tiltY = (dx * 8).toFixed(1);   // left/right tilt
+    const tiltX = (-dy * 5).toFixed(1);  // up/down tilt
     cardEl.style.setProperty("--tilt-x", `${tiltX}deg`);
     cardEl.style.setProperty("--tilt-y", `${tiltY}deg`);
   }

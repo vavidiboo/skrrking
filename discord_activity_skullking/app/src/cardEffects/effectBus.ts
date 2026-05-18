@@ -173,6 +173,12 @@ function cardLabel(card: BuildCardEffectPayloadOptions["card"] = {}): string {
 }
 
 function sanitizeSourceClassName(className = ""): string {
+  // Tokens that describe interaction state, not the visual card identity.
+  // We strip them so the cloned source card in CardEffectLayer does not
+  // inherit hover/press/drag affordances mid-effect (the clone is purely
+  // a visual stand-in). The Stage 6 hand grammar adds `data-hand-state` on
+  // the source DOM; that is dataset, not className, so it is filtered
+  // automatically when we copy `.outerHTML` and never reaches this list.
   const blocked = new Set([
     "playable",
     "legal",

@@ -2682,7 +2682,10 @@ button:disabled {
   position: absolute;
   left: var(--table-hand-side);
   right: var(--table-hand-side);
-  bottom: var(--table-hand-bottom);
+  /* Stage 6: respect mobile safe-area inset so the hand never sits under
+   * the iOS home indicator inside Discord. max() preserves the original
+   * --table-hand-bottom on devices that report 0 inset. */
+  bottom: max(var(--table-hand-bottom), env(safe-area-inset-bottom, 0px));
   min-height: var(--table-hand-h);
   z-index: 150;
   pointer-events: none;
@@ -2943,6 +2946,74 @@ button:disabled {
 .hand-card.illegal {
   opacity: 0.42;
   filter: grayscale(0.18) saturate(0.5);
+}
+
+/* ── Stage 6: hand-card state grammar reinforcement ──────────────────────
+ *
+ * These rules sit on top of the existing legacy classes (.playable, .legal,
+ * .selected, .blocked, .illegal, .dragging, .drag-commit). They use the
+ * canonical data-hand-state attribute applied by applyHandCardState() in
+ * legacy-app.js so the new cues never fight the old hover/active rules.
+ *
+ * Goals:
+ *   - selected reads stronger than hover (no grammar collision)
+ *   - disabled gets a non-color cue (diagonal stripe) so blocked cards are
+ *     readable even with color-vision differences (uiux-direction.md
+ *     "Never rely on color alone")
+ *   - keyboard focus has a visible ring on every hand card
+ *   - the hand container respects mobile safe-area inset so the bottom row
+ *     does not sit under the Discord home indicator on iOS
+ */
+
+/* selected emphasis: stronger outline + slight lift, beats :hover priority */
+.hand-card[data-hand-state="selected"] {
+  outline: 2px solid rgba(255, 247, 220, 0.92);
+  outline-offset: 2px;
+  box-shadow:
+    0 22px 36px rgba(4, 9, 20, 0.42),
+    0 0 0 4px rgba(241, 207, 116, 0.32),
+    0 0 28px rgba(241, 207, 116, 0.34);
+}
+
+/* disabled non-color cue: faint diagonal hatch overlay */
+.hand-card[data-hand-state="disabled"] {
+  position: relative;
+}
+.hand-card[data-hand-state="disabled"]::before {
+  /* keep the inset frame from .hand-card::before; this is a separate layer */
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(15, 20, 36, 0.0) 0px,
+    rgba(15, 20, 36, 0.0) 6px,
+    rgba(15, 20, 36, 0.18) 6px,
+    rgba(15, 20, 36, 0.18) 9px
+  );
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* keyboard focus ring — minimum a11y, visible regardless of state */
+.hand-card:focus-visible {
+  outline: 3px solid rgba(126, 199, 184, 0.92);
+  outline-offset: 3px;
+  box-shadow:
+    0 18px 32px rgba(4, 9, 20, 0.4),
+    0 0 0 4px rgba(126, 199, 184, 0.42);
+}
+
+/* compact viewport: keep selected outline visible without crowding neighbours */
+@media (max-width: 760px) {
+  .hand-card[data-hand-state="selected"] {
+    outline-offset: 1px;
+  }
+}
+
+/* performance-lite: drop the heavy decorative shadows but keep the
+ * informational outline so legal/blocked stays clear */
+body.performance-lite .hand-card[data-hand-state="selected"] {
+  box-shadow: 0 12px 22px rgba(4, 9, 20, 0.36) !important;
+}
+body.performance-lite .hand-card[data-hand-state="disabled"]::before {
+  background-image: none;
 }
 
 /* deal entrance animation */
