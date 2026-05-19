@@ -15,10 +15,14 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vitest/globals"]
   },
   "include": [
     "discord_activity_skullking/app/src/**/*",
     "discord_activity_skullking/app/legacy-app.js"
+  ],
+  "exclude": [
+    "discord_activity_skullking/app/src/**/__tests__/**"
   ]
 }

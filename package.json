@@ -5,6 +5,10 @@
     "build": "esbuild discord_activity_skullking/app/src/main.tsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js",
     "build:watch": "esbuild discord_activity_skullking/app/src/main.tsx --bundle --format=esm --target=es2020 --loader:.html=text --outfile=discord_activity_skullking/app/app.js --watch",
     "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:hand": "vitest run discord_activity_skullking/app/src/hand",
+    "test:hand:smoke": "esbuild scripts/hand-smoke.mjs --bundle --platform=node --format=esm --outfile=.tmp/hand-smoke.mjs --external:react --external:react-dom && node .tmp/hand-smoke.mjs",
+    "test:hand:guardrail": "node scripts/hand-guardrail-check.mjs",
     "test:stage7": "esbuild tests/stage7_effects.test.ts --bundle --platform=node --format=cjs --outfile=.tmp/stage7_effects.test.cjs && node .tmp/stage7_effects.test.cjs"
   },
   "dependencies": {
@@ -15,10 +19,14 @@
     "three": "^0.169.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.1.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.169.0",
     "esbuild": "^0.27.0",
-    "typescript": "^5.9.3"
+    "fast-check": "^3.23.2",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

@@ -1,0 +1,230 @@
+/* Stage 6 Hand UX module — feature-scoped stylesheet (task 7.1).
+ *
+ * Owns the 1:1 mapping from the seven normalized hand-card states
+ * (idle / legal / blocked / hovered / selected / held / resolving) to a
+ * single CSS class each, plus compact-viewport, performance-lite, and
+ * prefers-reduced-motion branches. Imported as a side effect from
+ * HandPresenter.tsx so esbuild bundles it; the global styles.css MUST NOT
+ * gain any new hand selector (R7-1, R7-4).
+ *
+ * Channel discipline (R2-2, R8-3): every state expresses identifiable
+ * difference on at least two of the non-color channels
+ *   { outline, box-shadow, transform: translateY, opacity }
+ * relative to the idle baseline, and `legal` vs `blocked` differ on at
+ * least one such channel. The `data-state-channels` attribute mirroring
+ * those tokens is applied by HandCard.tsx (task 8.1) so jsdom tests can
+ * verify them deterministically; the values listed in each block below
+ * are the canonical token strings HandCard.tsx is expected to emit.
+ */
+
+/* ── Shared design tokens ──────────────────────────────────────────────────
+ * Local to this module so the global styles.css does not learn new hand
+ * tokens (R7-1, R7-4). Colors reuse the existing navy/brass/sea palette.
+ */
+.is-state-idle,
+.is-state-legal,
+.is-state-blocked,
+.is-state-hovered,
+.is-state-selected,
+.is-state-held,
+.is-state-resolving {
+  --hand-state-outline-color: rgba(241, 207, 116, 0.85);   /* brass */
+  --hand-state-outline-strong: rgba(255, 247, 220, 0.95);  /* bright brass */
+  --hand-state-glow-color: rgba(126, 199, 184, 0.55);      /* sea glow */
+  --hand-state-glow-strong: rgba(126, 199, 184, 0.85);     /* sea glow strong */
+  --hand-state-shadow-deep: rgba(4, 9, 20, 0.32);          /* navy depth */
+  --hand-state-lift-hover: -8px;
+  --hand-state-lift-selected: -12px;
+  --hand-state-lift-held: -4px;
+  --hand-state-lift-legal: -2px;
+  --hand-state-lift-resolving: -2px;
+  /* Smooth visual transitions for state changes (R1-2: 33ms cap is set by
+   * the React commit phase; CSS only governs the in-frame easing). */
+  transition:
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 140ms ease-out,
+    outline-color 120ms ease-out,
+    opacity 120ms ease-out;
+  will-change: transform, box-shadow, opacity;
+}
+
+/* ── State 1/7: idle ──────────────────────────────────────────────────────
+ * channels: outline opacity   (outline = none baseline, opacity = 1 baseline)
+ * Reference frame other states are measured against.
+ */
+.is-state-idle {
+  outline: 0 solid transparent;
+  outline-offset: 0;
+  box-shadow: none;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ── State 2/7: legal ─────────────────────────────────────────────────────
+ * channels: outline shadow   (subtle brass outline + light sea glow lift)
+ * Differs from blocked on outline, opacity, shadow, and lift — well past
+ * the R2-2 minimum of one channel.
+ */
+.is-state-legal {
+  outline: 1px solid var(--hand-state-outline-color);
+  outline-offset: 2px;
+  box-shadow:
+    0 6px 14px var(--hand-state-shadow-deep),
+    0 0 14px var(--hand-state-glow-color);
+  transform: translateY(var(--hand-state-lift-legal));
+  opacity: 1;
+}
+
+/* ── State 3/7: blocked ───────────────────────────────────────────────────
+ * channels: opacity shadow   (low opacity + inset shadow, no lift)
+ * Required fallback target for legalityKnown=false / not-my-turn / illegal
+ * (R2-3, R2-6, R3-2, R4-3).
+ */
+.is-state-blocked {
+  outline: 0 solid transparent;
+  outline-offset: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(20, 33, 61, 0.65),
+    inset 0 4px 10px rgba(4, 9, 20, 0.45);
+  transform: translateY(0);
+  opacity: 0.55;
+}
+
+/* ── State 4/7: hovered ───────────────────────────────────────────────────
+ * channels: lift shadow   (desktop hover dwell, R3-1: lift + glow)
+ */
+.is-state-hovered {
+  outline: 0 solid transparent;
+  outline-offset: 0;
+  box-shadow:
+    0 16px 28px var(--hand-state-shadow-deep),
+    0 0 22px var(--hand-state-glow-strong);
+  transform: translateY(var(--hand-state-lift-hover));
+  opacity: 1;
+}
+
+/* ── State 5/7: selected ──────────────────────────────────────────────────
+ * channels: outline lift   (strong brass outline + larger lift)
+ * Must remain visually distinct from hovered on ≥2 channels (R3-6) — here
+ * outline (strong vs none) and translateY (-12 vs -8) plus a brighter
+ * shadow.
+ */
+.is-state-selected {
+  outline: 2px solid var(--hand-state-outline-strong);
+  outline-offset: 3px;
+  box-shadow:
+    0 18px 30px var(--hand-state-shadow-deep),
+    0 0 26px var(--hand-state-glow-strong);
+  transform: translateY(var(--hand-state-lift-selected));
+  opacity: 1;
+}
+
+/* ── State 6/7: held ──────────────────────────────────────────────────────
+ * channels: lift shadow   (long-press inspect, R4-2)
+ * Distinguishable from hovered by smaller lift and a tighter inspect glow,
+ * and from selected by absence of strong outline.
+ */
+.is-state-held {
+  outline: 1px dashed var(--hand-state-glow-strong);
+  outline-offset: 2px;
+  box-shadow:
+    0 10px 22px var(--hand-state-shadow-deep),
+    0 0 18px var(--hand-state-glow-color);
+  transform: translateY(var(--hand-state-lift-held));
+  opacity: 1;
+}
+
+/* ── State 7/7: resolving ─────────────────────────────────────────────────
+ * channels: opacity shadow   (in-flight play, R3-4 / R4-5)
+ * Slight opacity drop signals "waiting on backend" without removing the
+ * card from view; the wide pulse shadow communicates ongoing work.
+ */
+.is-state-resolving {
+  outline: 0 solid transparent;
+  outline-offset: 0;
+  box-shadow:
+    0 14px 26px var(--hand-state-shadow-deep),
+    0 0 32px var(--hand-state-glow-strong);
+  transform: translateY(var(--hand-state-lift-resolving));
+  opacity: 0.85;
+  animation: hand-state-resolving-pulse 1100ms ease-in-out infinite;
+}
+
+@keyframes hand-state-resolving-pulse {
+  0%   { box-shadow: 0 14px 26px var(--hand-state-shadow-deep), 0 0 24px var(--hand-state-glow-color); }
+  50%  { box-shadow: 0 14px 26px var(--hand-state-shadow-deep), 0 0 36px var(--hand-state-glow-strong); }
+  100% { box-shadow: 0 14px 26px var(--hand-state-shadow-deep), 0 0 24px var(--hand-state-glow-color); }
+}
+
+/* ── Compact viewport branch (<768px, R5-2/5-3/5-4) ───────────────────────
+ * Trim outline-offsets so neighbouring fan cards do not crowd, and damp
+ * desktop-only lift-on-hover-style emphasis. The seven-state mapping is
+ * preserved — only magnitudes change (R2-5).
+ */
+@media (max-width: 767.98px) {
+  .is-state-legal {
+    outline-offset: 1px;
+    transform: translateY(-1px);
+  }
+  .is-state-selected {
+    outline-offset: 2px;
+    transform: translateY(-9px);
+  }
+  .is-state-hovered {
+    /* Compact viewport is touch-first; hover is rarely reachable, so we
+     * keep the class identifiable via shadow alone with a smaller lift. */
+    transform: translateY(-4px);
+    box-shadow:
+      0 12px 20px var(--hand-state-shadow-deep),
+      0 0 16px var(--hand-state-glow-color);
+  }
+  .is-state-held {
+    transform: translateY(-3px);
+    outline-offset: 1px;
+  }
+}
+
+/* ── performance-lite branch (R8-4) ───────────────────────────────────────
+ * Replace heavy glow / animation with static, lower-cost equivalents while
+ * keeping the non-color-channel identity (outline + opacity + lift) so the
+ * seven states remain visually distinguishable at low cost.
+ */
+body.performance-lite .is-state-legal {
+  box-shadow: 0 4px 10px var(--hand-state-shadow-deep);
+}
+body.performance-lite .is-state-blocked {
+  box-shadow: inset 0 0 0 1px rgba(20, 33, 61, 0.65);
+}
+body.performance-lite .is-state-hovered {
+  box-shadow: 0 10px 18px var(--hand-state-shadow-deep);
+}
+body.performance-lite .is-state-selected {
+  box-shadow: 0 12px 22px var(--hand-state-shadow-deep);
+}
+body.performance-lite .is-state-held {
+  box-shadow: 0 8px 14px var(--hand-state-shadow-deep);
+}
+body.performance-lite .is-state-resolving {
+  /* Drop the pulse animation to a static glow under perf-lite. */
+  animation: none;
+  box-shadow: 0 10px 18px var(--hand-state-shadow-deep);
+}
+
+/* ── prefers-reduced-motion branch (a11y) ─────────────────────────────────
+ * Disable transitions and the resolving keyframe pulse but keep the static
+ * non-color channel deltas so state identity survives.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .is-state-idle,
+  .is-state-legal,
+  .is-state-blocked,
+  .is-state-hovered,
+  .is-state-selected,
+  .is-state-held,
+  .is-state-resolving {
+    transition: none;
+  }
+  .is-state-resolving {
+    animation: none;
+  }
+}
